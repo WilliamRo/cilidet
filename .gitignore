@@ -1,0 +1,5 @@
+*[Tt]est*.m
+*.asv
+*data/
+*.mat
+[Rr]ecycle/
