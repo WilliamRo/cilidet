@@ -1,0 +1,3 @@
+[submodule "+imv"]
+	path = +imv
+	url = https://github.com/WilliamRo/imageviewer
