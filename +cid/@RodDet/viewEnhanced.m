@@ -3,10 +3,11 @@ function viewEnhanced(this)
 %   ...
 
 %% Gather enhanced results
-N = 2;
-labels = 1 : N;
-stack = repmat(this.Image, 1, 1, N);
+stack = this.Image;
 stack(:, :, 2) = this.AltitudeMap;
+% stack(:, :, 3) = edge(this.Image);
+% generate labels
+labels = 1 : size(stack, 3);
 
 %% View
 viewer = imv.ImageViewer(stack, labels, @interpreter);
@@ -17,7 +18,8 @@ end
 %% interpreter
 function str = interpreter(index)
 
-titles = {'Origin Image', 'Altitude Map'};
+titles = {'Origin Image', 'Altitude Map', ...
+          'Placeholder'};
 str = titles{index};
 
 end
