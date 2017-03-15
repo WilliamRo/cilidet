@@ -2,28 +2,21 @@ function viewEnhanced(this)
 %RODDET::VIEWENHANCED ...
 %   ...
 
+%% Initialize an instance of ImageViewer
+viewer = imv.ImageViewer;
+
 %% Gather enhanced results
-stack = this.Image;
-stack(:, :, 2) = this.AltitudeMap;
-% imopen
-stack(:, :, 3) = imopen(this.Image, strel('disk', 4));
-stack(:, :, 4) = this.Image - stack(:, :, 3);
-% generate labels
-labels = 1 : size(stack, 3);
+viewer.addImage(this.Image, 'Original Image')
+viewer.addImage(this.ResponseMap, 'Response Map')
+viewer.addImage(this.AltitudeMap, 'Altitude Map')
+%
+disk = strel('disk', 3);
+tophat = imtophat(this.ResponseMap, disk);
+viewer.addImage(tophat, 'Tophat over Resmap')
+enhanced = tophat .* this.AltitudeMap .* this.Image;
+viewer.addImage(enhanced, 'Enhanced')
 
 %% View
-viewer = imv.ImageViewer(stack, labels, @interpreter);
 viewer.view
 
 end
-
-%% interpreter
-function str = interpreter(index)
-    
-titles = {'Origin Image', 'Altitude Map', ...
-          'Placeholder', 'Placeholder', ...
-          'Placeholder', 'Placeholder'};
-str = titles{index};
-
-end
-
