@@ -4,7 +4,7 @@ viewer = imv.ImageViewer;
 
 %% Create a RodDet and get origin image
 rd = cid.RodDet('cnt', 12, 'len', 23, 'sigma', 1.28);
-rd.setImage(bmk(28))
+rd.setImage(bmk(5))
 img = rd.Image;
 % add origin image to viewer
 viewer.addImage(img, 'Origin Image')
@@ -44,14 +44,27 @@ diskSize = 4;
 tophat = imtophat(img, strel('disk', diskSize));
 viewer.addImage(tophat, sprintf('Tophat (disksize=%d)', diskSize))
 % blur
-bluredtophat = imgaussfilt(tophat, 0.8);
-% kill spot
-tmp2 = cid.utils.killspot(bluredtophat, 6);
-viewer.addImage(tmp2, 'Spot killed');
-% rd
-rd.setImage(tmp2);
-% tmp4 = rd.AltitudeMap .* rd.ResponseMap .* tmp3;
-% viewer.addImage(tmp4, 'tmp4');
+blurredtophat = imgaussfilt(tophat, 0.8);
+viewer.addImage(blurredtophat, 'Blurred Tophat')
+% kill spot 1
+% viewer.addImage(blurredtophat, 'Blurred Tophat')
+sk1 = cid.utils.killspot(blurredtophat, 6);
+viewer.addImage(sk1, 'Spot killed 1');
+% hatick
+ks = hatrick(blurredtophat);
+viewer.addImage(ks, sprintf('After Hatrick'))
+% % blur
+% blurredsk1 = imgaussfilt(sk1, 0.8);
+% viewer.addImage(blurredsk1, 'Blurred sk1')
+% % kill spot 1
+% sk2 = cid.utils.killspot(blurredsk1, 8);
+% viewer.addImage(sk2, 'Spot killed 2');
+% % blur sk2
+% blurredsk2 = imgaussfilt(sk2, 0.8);
+% viewer.addImage(blurredsk2, 'Blurred sk2')
+% % tophat again
+% tophat2 = imtophat(blurredsk2, strel('disk', diskSize));
+% viewer.addImage(tophat2, 'Tophat2')
 end
 
 %% View
