@@ -3,35 +3,42 @@ classdef Detector < handle
     %   ...
     %% Public Properties
     properties (Access = public)
+        Session = {}
     end % Public Properties
     %% Read-only Properties
     properties (SetAccess = private, GetAccess = public)
-        RawImage
-        RawImageMap = []
-        GrayImage
+        DotKiller
+        RodDetector
     end % Read-only Properties
     %% Private Properties
     properties (Access = private)
-        RodDetector
+        EnhanceParams = struct('DiskSize', 4, 'BlurSigma', 0.7)
+        DotKilParams = struct('N', 11, 'Length', 8, 'Thickness', 2)
     end % Private Properties
     %% Public Methods
     methods (Access = public)
         % Constructor
-        function this = Detector(image, varargin)
-            % preprocess image
-            this.setImage(image)
-            % initialize rod-detector
+        function this = Detector(varargin)
+            % initialize Dotkiller
+            this.DotKiller = cid.DotKil(...
+                this.DotKilParams.N, ...
+                this.DotKilParams.Length, ...
+                this.DotKilParams.Thickness);
+            % initialize RodDetector
             this.RodDetector = cid.RodDet(varargin{:});
-            % set image to RodDetector
-            this.RodDetector.setImage(this.RawImage)
         end
         %
+        setImage(this, image)
+        enhanceImage(this)
         % [SHOW]
-        showImages(this)
+        function viewSession(this)
+            assert(~isempty(this.Session), '!! Session is empty')
+            this.Session.browse
+        end
     end % Public Methods
     %% Private Methods
     methods (Access = private)
-        setImage(this, image)
+
     end
     
 end
