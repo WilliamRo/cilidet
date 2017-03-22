@@ -11,6 +11,10 @@ classdef BarEmbedder < cid.mf.MorphFilter
     end
     %% Public Methods
     methods (Access = public)
+        % Constructor
+        function this = BarEmbedder(varargin)
+            this@cid.mf.MorphFilter(varargin{:});
+        end
         img = filter(this, img)
     end
     %% Abstract Private Methods

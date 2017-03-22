@@ -13,7 +13,7 @@ if false
 end
 
 %% Remove spots
-img = this.DotKiller.killDots(img);
+img = this.DotKiller.filter(img);
 
 %% Set enhanced image to session
 this.Session.setImage('EnhancedImage', img)
