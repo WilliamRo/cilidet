@@ -1,0 +1,9 @@
+function reveal(this)
+%DETECTOR::REVEAL ...
+%   ...
+
+this.Session.setImage('Revealed', ...
+    this.Session.AltitudeMap .* this.Session.EnhancedImage);
+
+end
+

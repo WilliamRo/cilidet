@@ -14,22 +14,6 @@ classdef RodDet < handle
         Perpendiculars      % (L, 2, N) array
         Ideal               % (1, N) array
     end % Read-only Properties
-    %% Read-only Derivative Properties
-    properties (SetAccess = private, GetAccess = public)
-        % images and low-level derivatives
-        Image               % (H, W) normalized single
-        Blur                % (H, W) normalized single
-        Background          % scalar
-        HiddenLayer         % (H, W, N) array
-        % high-level derivatives
-        ResponseMap         % (H, W) array
-        PeakIndices         % (H, W) array
-        AltitudeMap         % (H, W) array
-    end
-    %% Public Properties
-    properties (Access = public)
-        
-    end
     %% Public Methods
     methods (Access = public)
         % Constructor
@@ -38,14 +22,14 @@ classdef RodDet < handle
             this.generateKernels()
         end % Constructor
         %
-        setImage(this, img)
-        % [DISP]
+        maps = generateMaps(this, img)
+        % [SHOW]
         showKernels(this)
-        viewEnhanced(this)
     end % Public Methods
     %% Property Methods
     methods (Access = private)
         val = RoiSize(this)
+        knl = FullKernel(this, index)
     end
     %% Private Methods
     methods (Access = private)

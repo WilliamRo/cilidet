@@ -7,7 +7,7 @@ img = imtophat(this.Session.EnhancedImage, ...
     strel('disk', this.EnhanceParams.DiskSize));
 this.Session.setImage('BgRemoved', img)
 % blur img
-if true
+if false
     img = imgaussfilt(img, this.EnhanceParams.BlurSigma);
     this.Session.setImage('BgRmdBlurred', img)
 end

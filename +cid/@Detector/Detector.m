@@ -27,9 +27,14 @@ classdef Detector < handle
             % initialize RodDetector
             this.RodDetector = cid.RodDet(varargin{:});
         end
-        %
+        % main methods
+        probe(this, image)
+        cilia = detect(this, image, varargin)
+        % worker methods
         setImage(this, image)
         enhanceImage(this)
+        getMaps(this)
+        reveal(this)
         % [SHOW]
         function viewSession(this)
             assert(~isempty(this.Session), '!! Session is empty')
@@ -38,7 +43,6 @@ classdef Detector < handle
     end % Public Methods
     %% Private Methods
     methods (Access = private)
-
     end
     
 end

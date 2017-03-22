@@ -18,6 +18,9 @@ image = image / max(image(:));
 % NOT NECESSARY YET
 % save image to this.Session.GrayImage
 this.Session.setImage('GrayImage', image, true);
+% blur gray image
+image = imgaussfilt(image, 1);
+this.Session.setImage('GrayBlurred', image, true);
 
 end
 

@@ -1,21 +1,32 @@
 classdef Session < handle
     %DEPOT ...
     %   ...
-    %% Public Properties
-    properties (Access = public)        
-    end
     %% Read-only Properties
     properties (SetAccess = private, GetAccess = public)
-        RawImage
-        GrayImage
+        % stage I
+        RawImage            % (H, W, C) whatever
+        GrayImage           % (H, W) normalized single
+        GrayBlurred
         BgRemoved = {}
         BgRmdBlurred = {}
         EnhancedImage
+        % stage II
+        ResponseMap         % (H, W) array
+        AltitudeMap         % (H, W) array
+        MapCache            % struct { Hidden, PeakIndices }
+        Revealed
     end
     %% Private Constants
     properties (Constant, Access = private)
-        BrowseList = {'GrayImage', 'BgRemoved', 'BgRmdBlurred', ...
-            'EnhancedImage'};
+        BrowseList = {...
+            'GrayImage', ...
+            'GrayBlurred', ...
+            'BgRemoved', ...
+            'BgRmdBlurred', ...
+            'EnhancedImage', ...
+            'ResponseMap', ...
+            'AltitudeMap', ...
+            'Revealed'};
     end
     %% Public Methods
     methods (Access = public)
@@ -37,6 +48,10 @@ classdef Session < handle
             % set image 
             this.(prop) = img;
             if updateEnhanced, this.EnhancedImage = img; end
+        end % set image
+        function setMaps(this, maps)
+            [this.ResponseMap, this.AltitudeMap, this.MapCache] = ...
+                deal(maps{:});
         end
     end
     
