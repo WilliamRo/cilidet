@@ -1,71 +1,85 @@
-clear
-%% Create empty ImageViewer
-viewer = imv.ImageViewer;
+%% Initialize
+clear, clc
+de = cid.Detector;
+vr = imv.ImageViewer;
 
-%% Create a RodDet and get origin image
-rd = cid.RodDet('cnt', 12, 'len', 23, 'sigma', 1.28);
-rd.setImage(bmk(5))
-img = rd.Image;
-% add origin image to viewer
-viewer.addImage(img, 'Origin Image')
-% add altitude map to viewer
-% viewer.addImage(rd.AltitudeMap, 'Altitude Map')
+%% Read image and preprocess
+index = 1;
+de.setImage(bmk(index));
+img = de.Session.GrayImage;
+vr.addImage(img, 'Gray Image');
+img = imgaussfilt(img, 0.7);
+vr.addImage(img, 'Blurred Gray Image');
 
-%% ...
-if false
+%% Enhance
+% reomve background
+img = imtophat(img, strel('disk', 4));
+vr.addImage(img, 'Backgound Removed')
 % blur
-if false    
-ori_img = img;
-gauss = fspecial('gaussian', 4);
-img = imfilter(img, gauss, 'same');
-viewer.addImage(img, 'Blured')
+s = 1;
+for s = []
+    img = imgaussfilt(img, s);
+    vr.addImage(img, 'Blurred')
+end
+% remove spots (method II)
+tmp = img;
+[N, L, T] = deal(6, 9, 2);
+for T = 2
+    be = cid.mf.BarEmbedder(N, L, T);
+    img = be.filter(tmp);  beimg = img;
+    strparam = sprintf(' (N=%d, L=%d, T=%d)', N, L, T);
+%     vr.addImage(img, ['Spots Killed Image', strparam])
+end
+%
+D = 7;
+for D = D
+    la = cid.mf.Lasso(D);
+    img = la.filter(tmp); laimg = img;
+    strparam = sprintf(' (D=%d)', D);
+%     vr.addImage(img, ['Spots Killed Image', strparam])
+end
+%
+img = max(laimg, beimg);
+vr.addImage(img, 'max');
+% blur
+s = 1;
+for s = s
+    img = imgaussfilt(img, s);
+    vr.addImage(img, 'Blurred')
+end
+% imclose
+R = 6;
+for R = R
+    label = sprintf('imclose (R=%d)', R);
+    img = imclose(img, strel('disk', R));
+    vr.addImage(img, label)
+    %
+%     label = sprintf('tophat (R=%d)', 4);
+%     img = imtophat(img, strel('disk', 4));
+%     vr.addImage(img, label)
 end
 % tophat
-for r = 2:5
-    disk = strel('disk', r);
-    rstr = sprintf(' (R = %d)', r);
-    opened = imopen(img, disk);
-    closed = imclose(img, disk);
-    tophat = img - opened;
-    bottomhat = closed - img;
-    % viewer.addImage(opened, 'Opened')
-    % viewer.addImage(closed, 'Closed')
-    viewer.addImage(tophat, ['Top-hat', rstr])
-    % viewer.addImage(closed - img, 'Bottom-hat')
-    % viewer.addImage(2 * img - closed, 'XXX')
-
+R = 4;
+for R = R
+    label = sprintf('tophat (R=%d)', R);
+    img = imtophat(img, strel('disk', R));
+    vr.addImage(img, label)
 end
-end
-
-%% Dilate test
-if true
-% tophat
-diskSize = 4;
-tophat = imtophat(img, strel('disk', diskSize));
-viewer.addImage(tophat, sprintf('Tophat (disksize=%d)', diskSize))
-% blur
-blurredtophat = imgaussfilt(tophat, 0.8);
-viewer.addImage(blurredtophat, 'Blurred Tophat')
-% kill spot 1
-% viewer.addImage(blurredtophat, 'Blurred Tophat')
-sk1 = cid.utils.killspot(blurredtophat, 6);
-viewer.addImage(sk1, 'Spot killed 1');
-% hatick
-ks = hatrick(blurredtophat);
-viewer.addImage(ks, sprintf('After Hatrick'))
-% % blur
-% blurredsk1 = imgaussfilt(sk1, 0.8);
-% viewer.addImage(blurredsk1, 'Blurred sk1')
-% % kill spot 1
-% sk2 = cid.utils.killspot(blurredsk1, 8);
-% viewer.addImage(sk2, 'Spot killed 2');
-% % blur sk2
-% blurredsk2 = imgaussfilt(sk2, 0.8);
-% viewer.addImage(blurredsk2, 'Blurred sk2')
-% % tophat again
-% tophat2 = imtophat(blurredsk2, strel('disk', diskSize));
-% viewer.addImage(tophat2, 'Tophat2')
-end
+% final
+% img = 
 
 %% View
-viewer.view
+vr.view
+
+
+
+
+
+
+
+
+
+
+
+
+

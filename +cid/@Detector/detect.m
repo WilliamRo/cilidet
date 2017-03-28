@@ -15,7 +15,12 @@ this.enhanceImage()
 cilia = {};
 % generate maps
 this.getMaps()
-this.reveal();
+% generate decision map
+this.reveal()
+% scan
+repeat = 1;
+scanner = cid.utils.Scanner(size(image), this.BlockSize, repeat);
+
 
 end
 

@@ -9,11 +9,13 @@ classdef Detector < handle
     properties (SetAccess = private, GetAccess = public)
         DotKiller
         RodDetector
+        CowBoy
     end % Read-only Properties
     %% Private Properties
     properties (Access = private)
         EnhanceParams = struct('DiskSize', 4, 'BlurSigma', 0.7)
         DotKilParams = struct('N', 11, 'Length', 8, 'Thickness', 2)
+        ScanParams = struct('WindowSize', 100, 'Repeat', 1)
     end % Private Properties
     %% Public Methods
     methods (Access = public)
@@ -26,6 +28,8 @@ classdef Detector < handle
                 this.DotKilParams.Thickness);
             % initialize RodDetector
             this.RodDetector = cid.RodDet(varargin{:});
+            % initialize CowBoy
+            this.CowBoy = cid.mf.Lasso();
         end
         % main methods
         probe(this, image)
@@ -43,7 +47,12 @@ classdef Detector < handle
     end % Public Methods
     %% Private Methods
     methods (Access = private)
-    end
+        % property methods
+        function val = BlockSize(this)
+            S = this.ScanParams.WindowSize;
+            val = (S - mod(S, 4)) / 2;
+        end % BlockSize
+    end % % Private Methods
     
 end
 
