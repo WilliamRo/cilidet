@@ -10,6 +10,7 @@ classdef Detector < handle
         DotKiller
         RodDetector
         CowBoy
+        Analyzer
     end % Read-only Properties
     %% Private Properties
     properties (Access = private)
@@ -26,10 +27,12 @@ classdef Detector < handle
                 this.DotKilParams.N, ...
                 this.DotKilParams.Length, ...
                 this.DotKilParams.Thickness);
-            % initialize RodDetector
-            this.RodDetector = cid.RodDet(varargin{:});
             % initialize CowBoy
             this.CowBoy = cid.mf.Lasso();
+            % initialize RodDetector
+            this.RodDetector = cid.RodDet(varargin{:});
+            % initialize Analizer
+            this.Analyzer = cid.Analyzer;
         end
         % main methods
         probe(this, image)
@@ -45,6 +48,10 @@ classdef Detector < handle
             this.Session.browse
         end
     end % Public Methods
+    %% Public Static Methods
+    methods (Static, Access = public)
+        quickDetect(image)
+    end
     %% Private Methods
     methods (Access = private)
         % property methods

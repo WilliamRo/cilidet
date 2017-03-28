@@ -10,17 +10,20 @@ verbose = ~isempty(find(strcmp(varargin, 'verbose'), 1));
 this.setImage(image)
 % remove background, and maybe dots
 this.enhanceImage()
-
-%% Detect
-cilia = {};
 % generate maps
 this.getMaps()
 % generate decision map
 this.reveal()
-% scan
-repeat = 1;
-scanner = cid.utils.Scanner(size(image), this.BlockSize, repeat);
 
+%% Detect
+cilia = {};
+% scan
+repeat = this.ScanParams.Repeat;
+scanner = cid.utils.Scanner(size(image), this.BlockSize, repeat);
+while ~scanner.Finish
+    [xslice, yslice] = scanner.next();
+    dtls = this.Analyzer.analyze(xslice, yslice);
+end
 
 end
 

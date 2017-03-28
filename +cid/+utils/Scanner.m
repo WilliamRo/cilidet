@@ -42,12 +42,12 @@ classdef Scanner < handle
             tl = this.TopLefts(this.Cursor, :);
             br = this.BottomRights(this.Cursor, :);
             if nargout == 1, varargout{1} = [tl, br];
-            else varargout = {tl, br}; end
+            else varargout = {tl(1):br(1), tl(2):br(2)}; end
             % increase curse by 1
             this.Cursor = this.Cursor + 1;
         end
         % 
-        function flag = finish(this)
+        function flag = Finish(this)
             flag = this.Cursor > size(this.TopLefts, 1);
         end
     end % Public Methods
