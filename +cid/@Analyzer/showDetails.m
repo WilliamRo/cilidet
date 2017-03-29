@@ -18,11 +18,21 @@ plot(dtls.y, dtls.x, 'go', 'MarkerSize', 5)
 cid.utils.freezeColors
 % 
 subplot(3, 9, [3, 4])
-imshow(dtls.deciroi, []), title('Decision Map')
+imshow(dtls.blurroi, []), title('Blurred')
 cid.utils.freezeColors
 %
 subplot(3, 9, [5, 6])
 cid.utils.freezeColors
+
+%% Decision Map and ...
+% decision map
+subplot(2, 3, 3), hold off
+tt = sprintf('Decision Map, Score = %.1f', dtls.score);
+imshow(dtls.deciroi, []), title(tt), hold on
+plot(dtls.y, dtls.x, 'w*')
+colormap(jet), cid.utils.freezeColors
+%
+subplot(2, 3, 6), hold off
 
 %% Restore previous figure
 figure(cache)

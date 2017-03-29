@@ -101,6 +101,9 @@ function btnPressed(f, callbackdata)
             dtls = detector.Analyzer.analyze(...
                 xslice, yslice, 'details');
             detector.Analyzer.showDetails(dtls);
+        otherwise
+            pause('off')
+            pause('on')
     end % switch
 end
 

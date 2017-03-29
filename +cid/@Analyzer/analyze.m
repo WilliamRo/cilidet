@@ -28,6 +28,7 @@ if ~showdetails && dtls.bypass, return; end
 % ............................................................ mass
 if showdetails
     dtls.grayroi = sess.GrayImage(xslice, yslice);
+    dtls.blurroi = sess.GrayBlurred(xslice, yslice);
     dtls.deciroi = decis;
     [dtls.x, dtls.y] = deal(x, y);
 end

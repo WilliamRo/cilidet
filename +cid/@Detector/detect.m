@@ -35,11 +35,16 @@ while ~scanner.Finish
         pad.drawRect(position, true)
         % show detail
         if showdetails && index > 0
+            figure(cid.config.DetailFigureID)
             this.Analyzer.showDetails(dtls)
             pause
         end % if show detail
     end % if verbose
 end % while
+
+%% Post-process
+% restore pad figure focus
+if verbose, figure(cid.config.PadFigureID); end
 
 end
 
