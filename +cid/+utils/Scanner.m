@@ -9,13 +9,13 @@ classdef Scanner < handle
     end % Public Properties
     %% Public Methods
     methods (Access = public)
-        function this = Scanner(imsize, roisize, rpt)
+        function this = Scanner(imsize, blocksize, rpt)
             % check input
             narginchk(2, 3)
             if nargin < 3, rpt = 1; end
             [H, W] = deal(imsize(1), imsize(2));
-            if length(roisize) == 1, [h, w] = deal(roisize);
-            else [h, w] = deal(roisize(1), roisize(2)); end
+            if length(blocksize) == 1, [h, w] = deal(blocksize);
+            else [h, w] = deal(blocksize(1), blocksize(2)); end
             % generate Toplefts and BottomRights
             [cntX, cntY] = deal(ceil(H / h) - 1, ceil(W / w) - 1);
             [this.TopLefts, this.BottomRights] = ...
@@ -25,7 +25,7 @@ classdef Scanner < handle
                    index = (x - 1) * cntY + y;
                    this.TopLefts(index, :) = [1+(x-1)*h, 1+(y-1)*w];
                    this.BottomRights(index, :) = ...
-                       this.TopLefts(index, :) + [2*h, 2*w];
+                       this.TopLefts(index, :) + [2*h, 2*w] - 1;
                    this.BottomRights(index, :) = ...
                        min(this.BottomRights(index, :), [H, W]);
                 end

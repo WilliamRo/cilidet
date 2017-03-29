@@ -32,7 +32,7 @@ classdef Detector < handle
             % initialize RodDetector
             this.RodDetector = cid.RodDet(varargin{:});
             % initialize Analizer
-            this.Analyzer = cid.Analyzer;
+            this.Analyzer = cid.Analyzer(this);
         end
         % main methods
         probe(this, image)
@@ -53,7 +53,7 @@ classdef Detector < handle
         quickDetect(image)
     end
     %% Private Methods
-    methods (Access = private)
+    methods (Access = {?cid.Analyzer})
         % property methods
         function val = BlockSize(this)
             S = this.ScanParams.WindowSize;

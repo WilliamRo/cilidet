@@ -1,30 +1,36 @@
-function dtls = analyze(this, xslice, yslice, nobypass)
+function dtls = analyze(this, xslice, yslice, varargin)
 %ANALYZER::ANALYZE ...
 %   ...
 
 %% Initialize
-if nargin < 4, nobypass = false; end
+showdetails = ~isempty(find(strcmp(varargin, 'details'), 1));
+sess = this.Session;
+[H, W] = size(sess.GrayImage);
 dtls = [];
 
 %% Find ROIs
-sess = this.Session;
 decis = sess.DecisionMap(xslice, yslice);
 altit = sess.AltitudeMap(xslice, yslice);
+[h, w] = size(decis);
 
 %% Find Center
 [x, y] = find(decis == max(decis(:)), 1);
-% get margin
-[h, w] = size(decis);  
-margin = min([x, y, h-x+1, w-y+1]);
+xin = (xslice(1)==1 || x>h/4+1/2) && (xslice(end)==H || x<3*h/4+1/2);
+yin = (yslice(1)==1 || y>w/4+1/2) && (yslice(end)==W || y<3*w/4+1/2);
+inside = xin && yin;
 % ............................................................ score
-dtls.score = 100 * decis(x, y);
+dtls.score = 100 * altit(x, y);
 % ............................................................ bypass
-dtls.bypass = (margin < this.BlockSize / 2 - this.PixelTol) || ...
-    (dtls.score < this.MinScore);       
-if ~nobypass, return; end
+dtls.bypass = ~inside || (dtls.score < this.MinScore);       
+if ~showdetails && dtls.bypass, return; end
 
-%% ...
-
+%% Pack masses to show
+% ............................................................ mass
+if showdetails
+    dtls.grayroi = sess.GrayImage(xslice, yslice);
+    dtls.deciroi = decis;
+    [dtls.x, dtls.y] = deal(x, y);
+end
 
 end
 

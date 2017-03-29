@@ -7,6 +7,7 @@ classdef Analyzer < handle
         Detector
         % Parameters
         PixelTol = 8
+        MinScore = 11
     end % Private Properties
     %% Public Methods
     methods (Access = public)
@@ -18,7 +19,7 @@ classdef Analyzer < handle
             this.Detector = detector;
         end % Constructor
         % main methods
-        dtls = analyze(this, xslice, yslice)
+        dtls = analyze(this, xslice, yslice, varargin)
         showDetails(this, dtls)
     end % Public Methods
     %% Private Methods
@@ -26,6 +27,9 @@ classdef Analyzer < handle
         function sess = Session(this)
             sess = this.Detector.Session;
         end % Session
+        function val = BlockSize(this)
+            val = this.Detector.BlockSize;
+        end % BlockSize
     end % Private Methods
     
 end
