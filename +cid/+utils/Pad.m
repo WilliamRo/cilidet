@@ -6,23 +6,30 @@ classdef Pad < handle
         Background
         Title
         Rectangles = {}
+        ProbeMode
+        Detector = []
     end % Private Properties
     %% Public Methods
     methods (Access = public)
         % Constructor
-        function this = Pad(image, title)
+        function this = Pad(image, title, detector)
             % check input
-            narginchk(1, 2)
-            if nargin < 2, title = 'Pad'; end
+            narginchk(1, 3)
+            if nargin < 2 || isempty(title), title = 'Pad'; end
+            if nargin < 3, detector = []; end
             this.Title = title;
+            this.ProbeMode = isa(detector, 'cid.Detector');
+            % set detector
+            if this.ProbeMode, this.Detector = detector; end
             % set this.Background
             this.Background = image;
             % show background
-            this.showBackground;
+            this.showBackground();
         end % Constructor
         % property methods
         function fid = FigureID(this)
-            fid = cid.config.PadFigureID;
+            if this.ProbeMode, fid = cid.config.ProbeFigureID; 
+            else fid = cid.config.PadFigureID; end
         end
         % worker methods
         function showBackground(this)
@@ -34,9 +41,11 @@ classdef Pad < handle
             imgSize = imgSize(2:-1:1);
             % create figure
             f = figure(this.FigureID);
+            f.UserData = this.Detector;
             [f.Name, f.NumberTitle] = deal(this.Title, 'off');
             [f.ToolBar, f.MenuBar] = deal('none');
             [f.Units, f.Resize] = deal('pixels', 'off');
+            f.KeyPressFcn = @btnPressed;
             % adjust figure position and size
             ratio = max(imgSize ./ screenSize);
             [scale, pct] = deal(1, [0.4, 0.8]);
@@ -74,5 +83,24 @@ classdef Pad < handle
         end % drawRect
     end % Public Methods
     
+end
+
+%% Callback functions
+function btnPressed(f, callbackdata)
+    % ...
+    switch lower(callbackdata.Key)
+        case {'escape', 'q'}
+            fprintf('!> [%s] figure has been closed.\n', f.Name)
+            close(f)
+        case {'return'}
+            detector = f.UserData;
+            if isempty(detector), return; end
+            h = imrect; pos = floor(wait(h)); delete(h);
+            xslice = pos(2):(pos(2) + pos(4) - 1);
+            yslice = pos(1):(pos(1) + pos(3) - 1);
+            dtls = detector.Analyzer.analyze(...
+                xslice, yslice, 'details');
+            detector.Analyzer.showDetails(dtls);
+    end % switch
 end
 

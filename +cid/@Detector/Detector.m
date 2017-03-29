@@ -35,13 +35,10 @@ classdef Detector < handle
             this.Analyzer = cid.Analyzer(this);
         end
         % main methods
-        probe(this, image)
+        probe(this, image, varargin)
         cilia = detect(this, image, varargin)
         % worker methods
         setImage(this, image)
-        enhanceImage(this)
-        getMaps(this)
-        reveal(this)
         % [SHOW]
         function viewSession(this)
             assert(~isempty(this.Session), '!! Session is empty')
@@ -50,7 +47,7 @@ classdef Detector < handle
     end % Public Methods
     %% Public Static Methods
     methods (Static, Access = public)
-        quickDetect(image)
+        quickDetect(image, varargin)
     end
     %% Private Methods
     methods (Access = {?cid.Analyzer})

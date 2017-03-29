@@ -9,7 +9,7 @@ N = this.KernelCount;
 hidden = zeros(H, W, N);
 bg = mean(mean(img));
 % convolve
-fprintf('>> Convolving ... 00%%');  tic;
+fprintf(' > Convolving ... 00%%');  tic;
 for i = 1 : N
     hidden(:, :, i) = imfilter(img, this.Kernels{i}, 'conv', bg);
     % show progress
