@@ -7,11 +7,11 @@ function maps = generateMaps(this, img)
 N = this.KernelCount;
 [H, W] = size(img);
 hidden = zeros(H, W, N);
-bg = mean(mean(img));
 % convolve
 fprintf(' > Convolving ... 00%%');  tic;
 for i = 1 : N
-    hidden(:, :, i) = imfilter(img, this.Kernels{i}, 'conv', bg);
+    hidden(:, :, i) = imfilter(img, this.Kernels{i}, ...
+        'conv', 'symmetric');
     % show progress
     fprintf('\b\b\b%2d%%', floor(100 * i / N));
 end % for i
