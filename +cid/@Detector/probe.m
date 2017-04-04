@@ -3,12 +3,15 @@ function probe(this, image, varargin)
 %   ...
 
 %% Check input
+silent = ~isempty(find(strcmp(varargin, 'silent'), 1));
 
 %% Set image and preprocess
 this.setImage(image)
 
 %% Create Pad
-pad = cid.utils.Pad(this.Session.GrayImage, 'Probe', this);
+if silent, return; end
+pad = cid.utils.Pad(this.Session.GrayImage, ...
+    'Probe', this, varargin{:});
 
 end
 

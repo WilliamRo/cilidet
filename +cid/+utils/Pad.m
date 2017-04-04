@@ -8,17 +8,18 @@ classdef Pad < handle
         Rectangles = {}
         ProbeMode
         Detector = []
+        Args = {}
     end % Private Properties
     %% Public Methods
     methods (Access = public)
         % Constructor
-        function this = Pad(image, title, detector)
+        function this = Pad(image, title, detector, varargin)
             % check input
-            narginchk(1, 3)
             if nargin < 2 || isempty(title), title = 'Pad'; end
             if nargin < 3, detector = []; end
             this.Title = title;
             this.ProbeMode = isa(detector, 'cid.Detector');
+            this.Args = varargin;
             % set detector
             if this.ProbeMode, this.Detector = detector; end
             % set this.Background
@@ -41,7 +42,7 @@ classdef Pad < handle
             imgSize = imgSize(2:-1:1);
             % create figure
             f = figure(this.FigureID);
-            f.UserData = this.Detector;
+            f.UserData = {this.Detector, this};
             [f.Name, f.NumberTitle] = deal(this.Title, 'off');
             [f.ToolBar, f.MenuBar] = deal('none');
             [f.Units, f.Resize] = deal('pixels', 'off');
@@ -92,14 +93,14 @@ function btnPressed(f, callbackdata)
         case {'escape', 'q'}
             fprintf('!> [%s] figure has been closed.\n', f.Name)
             close(f)
-        case {'return'}
-            detector = f.UserData;
+        case {'return', 'space'}
+            [detector, pad] = deal(f.UserData{:});
             if isempty(detector), return; end
             h = imrect; pos = floor(wait(h)); delete(h);
             xslice = pos(2):(pos(2) + pos(4) - 1);
             yslice = pos(1):(pos(1) + pos(3) - 1);
             dtls = detector.Analyzer.analyze(...
-                xslice, yslice, 'details');
+                xslice, yslice, 'details', pad.Args{:});
             detector.Analyzer.showDetails(dtls);
         otherwise
             pause('off')

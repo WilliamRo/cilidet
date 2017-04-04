@@ -10,6 +10,7 @@ classdef Session < handle
         BgRemoved = {}
         BgRmdBlurred = {}
         EnhancedImage
+        Tmp
         % stage II
         ResponseMap         % (H, W) array
         AltitudeMap         % (H, W) array
@@ -23,11 +24,10 @@ classdef Session < handle
             'GrayImage', ...
             'GrayBlurred', ...
             'BgRemoved', ...
-            'BgRmdBlurred', ...
+            'Tmp', ...
             'EnhancedImage', ...
-            'DecisionMap', ...
-            'AltitudeMap', ...
-            'Revealed'};
+            'Revealed', ...
+            'DecisionMap1'};
     end
     %% Public Methods
     methods (Access = public)
@@ -37,7 +37,8 @@ classdef Session < handle
             vr = imv.ImageViewer;
             for i = 1 : length(this.BrowseList)
                 str = this.BrowseList{i};
-                if isempty(this.(str)), continue; end
+                if ~isprop(this, str) || isempty(this.(str))
+                    continue; end
                 vr.addImage(this.(str), str)
             end
             vr.view
@@ -53,8 +54,13 @@ classdef Session < handle
         function setMaps(this, maps)
             [this.ResponseMap, this.AltitudeMap, this.MapCache] = ...
                 deal(maps{:});
-        end
-    end
+        end % setMaps
+        function flag = inbound(this, pos)
+            [H, W] = size(this.GrayImage);
+            flag = pos(1) >= 1 && pos(1) <= H && ...
+                pos(2) >= 1 && pos(2) <= W;
+        end % flag
+    end % public methods
     
 end
 

@@ -6,6 +6,7 @@ classdef config
         PadFigureID = 666
         DetailFigureID = 667
         ProbeFigureID = 668
+        SectionFigureID = 669
     end % Common Constants
     %% XX Parameters
     properties (Constant)

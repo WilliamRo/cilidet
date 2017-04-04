@@ -1,5 +1,5 @@
 classdef RodDet < handle
-    %CONVAGENT ...
+    %RODDET ...
     %   ...
     %% Read-only Inherent Properties
     properties (SetAccess = private, GetAccess = public)
@@ -27,8 +27,11 @@ classdef RodDet < handle
         showKernels(this)
     end % Public Methods
     %% Property Methods
-    methods (Access = private)
-        val = RoiSize(this)
+    methods (Access = public)
+        function val = RoiSize(this)
+            R = (this.RodLength - 1) / 2;
+            val = ceil(R / 0.7) * 2 + 1;
+        end % RoiSize
         knl = FullKernel(this, index)
     end
     %% Private Methods

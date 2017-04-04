@@ -3,11 +3,15 @@ classdef Analyzer < handle
     %   ...
     %% Private Properties
     properties (Access = private)
+        % Debug Option
+        DebugMode = false
         % Detector
         Detector
         % Parameters
         PixelTol = 8
         MinScore = 11
+        StepLength = 1
+        RidgeArgs = struct('PeakRadius', 3)
     end % Private Properties
     %% Public Methods
     methods (Access = public)
@@ -20,10 +24,13 @@ classdef Analyzer < handle
         end % Constructor
         % main methods
         dtls = analyze(this, xslice, yslice, varargin)
+        info = trace(this, center, info)
+        [sctn, idcs] = getSection(this, pos)
         showDetails(this, dtls)
     end % Public Methods
     %% Private Methods
     methods (Access = private)
+        % property methods
         function sess = Session(this)
             sess = this.Detector.Session;
         end % Session
