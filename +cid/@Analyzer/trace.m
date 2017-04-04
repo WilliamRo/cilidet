@@ -14,24 +14,20 @@ if isempty(info), info = struct(...
         'health', [], 'kappa', 0, 'sign', 1); end
 % debug option
 if length(info.illu) > 500, this.DebugMode = true; end
+% multi-scope variable
+rad = this.RidgeArgs.PeakRadius;
+mid = (this.Detector.RodDetector.RodLength + 1) / 2;
+minpct = this.RidgeArgs.MinIlluPct;
 
 %% Move forward
 oldcenter = center;
-delta = Direction(center) * info.kappa * info.sign * this.StepLength;
-% step (1/2)
-center = round(center + delta);
+center = stepForward();
 % check inbound
 if ~this.Session.inbound(center), return; end
-% get section
-[sctn, idcs] = this.getSection(center);
-% find peak and update center
-rad = this.RidgeArgs.PeakRadius;
-mid = (this.Detector.RodDetector.RodLength + 1) / 2;
-[~, pkid] = max(sctn(mid - rad:mid + rad));
-pkid = pkid + mid - rad - 1;
+% adjust center
+[newcenter, sctn, idcs] = adjustCenter();
 % step (2/2)
-if pkid ~= mid
-    newcenter = idcs(pkid, :);
+if any(newcenter ~= center)
     % check inbound
     if ~this.Session.inbound(newcenter), return; end
     if info.kappa && ...
@@ -42,46 +38,80 @@ if pkid ~= mid
     [sctn, idcs] = this.getSection(center);
 end % step 2
 % update direction
-updateDirection()
+updateSign()
 
 %% Decide whether to continue
-if info.kappa == 1 && length(info.ridge) > 7, return; end
-if info.kappa == -1 && length(info.ridge) > 13, return; end
+health = getHealth();
+% illu = this.Session.Revealed(center(1), center(2));
+illu = this.Session.GrayBlurred(center(1), center(2));
+%
 if this.DebugMode, plotSection(); end
+%
+if health < this.RidgeArgs.MinHealth, return; end
+if ~isempty(info.illu) && illu < minpct * max(info.illu), return; end
+
 
 %% Recurse
 % record
 if info.kappa == 0
-    info.ridge = center;
+    [info.ridge, info.illu] = deal(center, illu);
     % continue
     info.kappa = 1;
     info = this.trace(center, info);
     info.kappa = -1;
+    info.sign = 1;
     info = this.trace(center, info);
 else
     if info.kappa == 1,
         info.ridge = [info.ridge; center];
+        info.illu = [info.illu; illu];
     elseif info.kappa == -1
         info.ridge = [center; info.ridge];
+        info.illu = [illu; info.illu];
     end
     % continue
     info = this.trace(center, info);
 end
 
 %% Nested functions
+% stepForward
+    function newpos = stepForward(pos)
+        if nargin < 1, pos = center; end
+        delta = Direction(pos) * info.kappa * ...
+            info.sign * this.StepLength;
+        newpos = round(pos + delta);
+    end
+% adjustCenter
+    function [pos, tsctn, tidcs] = adjustCenter(pos)
+        if nargin < 1, pos = center; end
+        % get section
+        [tsctn, tidcs] = this.getSection(pos);
+        % find peak
+        [~, pkid] = max(tsctn(mid - rad:mid + rad));
+        pkid = pkid + mid - rad - 1;
+        if tsctn(mid) < tsctn(pkid)
+            pos = tidcs(pkid, :);
+        end
+    end % adjustCenter
 % Direction
     function val = Direction(pos)
         index = this.Session.MapCache.PeakIndices(pos(1), pos(2));
         val = this.Detector.RodDetector.Directions(index, :);
     end
 % updateDirection
-    function updateDirection()
+    function updateSign()
         olddrct = Direction(oldcenter) * info.sign;
-        newdrct = Direction(center) * info.sign;
+        newdrct = Direction(center);
         info.sign = sign(dot(olddrct, newdrct));
+    end
+% getHealth
+    function val = getHealth()
+        mask = abs((1:length(sctn)) - mid) <= rad;
+        val = sum(sctn(mask)) / sum(sctn(~mask));
     end
 % plot section
     function plotSection()
+        oldf = gcf;
         % get roi
         [ofst, R] = deal(50, 25);
         image = padarray(this.Session.Revealed, [ofst, ofst]);
@@ -89,18 +119,48 @@ end
         [xslice, yslice] = deal(cter(1)+(-R:R), cter(2)+(-R:R));
         roi = image(xslice, yslice);
         % get ppdc
-        ppdc = idcs - repmat([xslice(1), yslice(1)], ...
-            size(idcs, 1), 1) + 1 + ofst;
+        topleft = [xslice(1), yslice(1)];
+        ppdc = idcs - repmat(topleft, size(idcs, 1), 1) + 1 + ofst;
         o = (size(roi, 1) + 1) / 2;
         % roi and ppdc
-        figure(cid.config.SectionFigureID)
+        f = figure(cid.config.SectionFigureID);
+        ftt = sprintf('Section, kappa = %d', info.kappa);
+        [f.Name, f.NumberTitle] = deal(ftt, 'off');
+        [f.ToolBar, f.MenuBar] = deal('none');
         subplot(1, 2, 1), hold off
-        imshow(roi), hold on
-        plot(ppdc(:, 2), ppdc(:, 1), 'g-'), plot(o, o, 'gs')
+        imshow(roi, []), hold on
+        plot(ppdc(:, 2), ppdc(:, 1), 'g-'), plot(o, o, 'ys')
+        % next and next adjust
+        if info.kappa
+            nextpos = stepForward();
+            nextadjust = adjustCenter(nextpos);
+            nextpos = nextpos - topleft + 1 + ofst;
+            nextadjust = nextadjust - topleft + 1 + ofst;
+            plot(nextpos(2), nextpos(1), ...
+                's', 'color', [1, 0.5, 0])
+            plot(nextadjust(2), nextadjust(1), 'rs')
+            octer = oldcenter - topleft + 1 + ofst;
+            plot(octer(2), octer(1), 'bs', 'MarkerSize', 3)
+        end
         % section
-        subplot(1, 2, 2)
-        plot(sctn)
-        % pause
+        mindex = (length(sctn) + 1) / 2;
+        subplot(2, 2, 4), hold off
+        plot(sctn), hold on, plot(mindex, sctn(mindex), 'gs')
+        tt = sprintf('Health = %.2f, Illu = %.2f', health, illu);
+        title(tt), xlim([1, length(sctn)])
+        % illuminations
+        subplot(2, 2, 2), hold off
+        L = length(info.illu);
+        if L > 0
+            plot(info.illu), hold on
+            minillu = max(info.illu) * minpct;
+            plot([1, max(L, 2)], [minillu, minillu], ...
+                '-', 'Color', [1, 0.5, 0])
+            title(sprintf('Pct = %.3f', illu / max(info.illu)))
+        end
+        L = max(L, 2);
+        plot([1, L], [illu, illu], 'r--'), xlim([1, L])
+        % restore and pause
         pause
     end
 

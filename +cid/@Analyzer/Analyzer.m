@@ -10,8 +10,12 @@ classdef Analyzer < handle
         % Parameters
         PixelTol = 8
         MinScore = 11
+        MinRidgeLength = 15
         StepLength = 1
-        RidgeArgs = struct('PeakRadius', 3)
+        RidgeArgs = struct(...
+            'PeakRadius', 3, ...
+            'MinHealth', 0.45, ...
+            'MinIlluPct', 0.45)
     end % Private Properties
     %% Public Methods
     methods (Access = public)

@@ -12,9 +12,12 @@ sess = this.Session;
 %% ROI and ...
 % gray roi
 subplot(3, 9, [1, 2]), hold off
-tt = sprintf('Blurred Image (%d, %d)', dtls.x, dtls.y);
+tt = sprintf('Ridge Length = %d', length(dtls.ridgeinfo.ridge));
 imshow(dtls.blurroi, []), title(tt), hold on
-plot(dtls.y, dtls.x, 'go', 'MarkerSize', 5)
+if dtls.hasridge
+    plot(dtls.y, dtls.x, 'go', 'MarkerSize', 5)
+    plot(dtls.locridge(:, 2), dtls.locridge(:, 1), 'g')
+end
 cid.utils.freezeColors
 % tophated
 subplot(3, 9, [3, 4])
@@ -30,7 +33,7 @@ cid.utils.freezeColors
 subplot(2, 3, 3), hold off
 tt = sprintf('Decision Map');
 imshow(dtls.deciroi, []), title(tt), hold on
-plot(dtls.y, dtls.x, 'w*')
+plot(dtls.y1, dtls.x1, 'w*')
 colormap(jet), cid.utils.freezeColors
 %
 subplot(2, 3, 6), hold off

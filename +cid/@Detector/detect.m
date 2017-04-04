@@ -27,12 +27,10 @@ while ~scanner.Finish
     % bypass
     if dtls.bypass, continue; end
     % add cilia
-    [cilia{index}, index] = deal([], index + 1);
+    [cilia{index}, index] = deal(dtls.ridgeinfo.ridge, index + 1);
     % verbose option
     if verbose
-        sz = this.ScanParams.WindowSize * ones(1, 2);
-        position = [yslice(1), xslice(1), sz];
-        pad.drawRect(position, true)
+        pad.drawRect(dtls.rectpos, true)
         % show detail
         if showdetails && index > 0
             figure(cid.config.DetailFigureID)

@@ -5,6 +5,8 @@ function dtls = analyze(this, xslice, yslice, varargin)
 %% Initialize
 this.DebugMode = ~isempty(find(strcmp(varargin, 'debug'), 1));
 showdetails = ~isempty(find(strcmp(varargin, 'details'), 1));
+verbose = ~isempty(find(strcmp(varargin, 'verbose'), 1));
+verbose = verbose || showdetails;
 sess = this.Session;
 [H, W] = size(sess.GrayImage);
 dtls = [];
@@ -28,16 +30,39 @@ if ~showdetails && dtls.bypass, return; end
 %% Find ridge
 [glox, gloy] = deal(xslice(1) + x - 1, yslice(1) + y - 1);
 dtls.ridgeinfo = this.trace([glox, gloy]);
+dtls.bypass = dtls.bypass || ...
+    size(dtls.ridgeinfo.ridge, 1) < this.MinRidgeLength;
 
 %% Pack masses to show
 % ............................................................ mass
+if verbose
+    edge = 7;
+    ridge = dtls.ridgeinfo.ridge;
+    if ~isempty(ridge)
+        xrg = max(1,min(ridge(:,1))-edge):min(H,max(ridge(:,1))+edge);
+        yrg = max(1,min(ridge(:,2))-edge):min(H,max(ridge(:,2))+edge);
+        dtls.rectpos = [yrg(1), xrg(1), ...
+            yrg(end) - yrg(1) + 1, xrg(end) - xrg(1) + 1];
+        dtls.hasridge = true;
+    else dtls.hasridge = false;
+    end
+end % if verbose
 if showdetails
-    % local position
-    [dtls.x, dtls.y] = deal(x, y);
-    % rois
-    dtls.grayroi = sess.GrayImage(xslice, yslice);
-    dtls.blurroi = sess.GrayBlurred(xslice, yslice);
-    dtls.hatroi = sess.BgRemoved(xslice, yslice);
+    [dtls.x1, dtls.y1] = deal(x, y);
+    if ~isempty(ridge)
+        % local position
+        [dtls.x, dtls.y] = deal(x + xslice(1) - xrg(1), ...
+                                y + yslice(1) - yrg(1));
+        % rois
+        dtls.grayroi = sess.GrayImage(xrg, yrg);
+        dtls.blurroi = sess.GrayBlurred(xrg, yrg);
+        dtls.hatroi = sess.BgRemoved(xrg, yrg);
+        % local ridge
+        topleft = [xrg(1), yrg(1)];
+        dtls.locridge = ridge - repmat(topleft, size(ridge,1),1) + 1;
+    else
+        [dtls.grayroi, dtls.blurroi, dtls.hatroi] = deal(0.5);
+    end
     dtls.altiroi = altit;
     dtls.deciroi = decis;
     % terrain

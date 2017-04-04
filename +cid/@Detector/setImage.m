@@ -29,7 +29,8 @@ img2 = this.CowBoy.filter(img);
 img = max(img1, img2);
 % dots = this.Session.BgRemoved - img;
 % this.Session.setImage('Tmp', dots)
-this.Session.setImage('EnhancedImage', img)
+enhanced = img;
+this.Session.setImage('EnhancedImage', enhanced)
 %
 img = imclose(img, strel('disk', 4));
 this.Session.setImage('Revealed', img)
