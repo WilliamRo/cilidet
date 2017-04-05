@@ -13,7 +13,8 @@ if isempty(info), info = struct(...
         'ridge', [], 'width', [], 'illu', [], 'alti', [], ...
         'health', [], 'kappa', 0, 'sign', 1); end
 % debug option
-if length(info.illu) > 500, this.DebugMode = true; end
+if ~this.DebugMode && length(info.illu) > this.RidgeArgs.MaxLen, ...
+    return; end
 % multi-scope variable
 rad = this.RidgeArgs.PeakRadius;
 mid = (this.Detector.RodDetector.RodLength + 1) / 2;
@@ -30,20 +31,19 @@ if ~this.Session.inbound(center), return; end
 if any(newcenter ~= center)
     % check inbound
     if ~this.Session.inbound(newcenter), return; end
-    if info.kappa && ...
-       ~isempty(find(sum(repmat(newcenter, size(info.ridge, 1), 1) ...
-       == info.ridge, 2) == 2, 1)), return; end
-    center = newcenter;
-    % update sctn, not adjust position again
-    [sctn, idcs] = this.getSection(center);
+    if ~overlap(newcenter)
+        center = newcenter;
+        % update sctn, not adjust position again
+        [sctn, idcs] = this.getSection(center);
+    end % if not overlap
 end % step 2
+if overlap, return; end
 % update direction
 updateSign()
 
 %% Decide whether to continue
 health = getHealth();
-% illu = this.Session.Revealed(center(1), center(2));
-illu = this.Session.GrayBlurred(center(1), center(2));
+illu = this.Session.IlluMap(center(1), center(2));
 %
 if this.DebugMode, plotSection(); end
 %
@@ -54,7 +54,7 @@ if ~isempty(info.illu) && illu < minpct * max(info.illu), return; end
 %% Recurse
 % record
 if info.kappa == 0
-    [info.ridge, info.illu] = deal(center, illu);
+    [info.ridge, info.illu, info.health] = deal(center, illu, health);
     % continue
     info.kappa = 1;
     info = this.trace(center, info);
@@ -65,9 +65,11 @@ else
     if info.kappa == 1,
         info.ridge = [info.ridge; center];
         info.illu = [info.illu; illu];
+        info.health = [info.health; health];
     elseif info.kappa == -1
         info.ridge = [center; info.ridge];
         info.illu = [illu; info.illu];
+        info.health = [health; info.health];
     end
     % continue
     info = this.trace(center, info);
@@ -93,6 +95,15 @@ end
             pos = tidcs(pkid, :);
         end
     end % adjustCenter
+% circle
+    function val = overlap(pos)
+        if nargin < 1, pos = center; end
+        if isempty(info.ridge), val = false; 
+        else
+            val = ~isempty(find(sum(repmat(pos, ...
+                size(info.ridge, 1), 1) == info.ridge, 2) == 2, 1));
+        end
+    end
 % Direction
     function val = Direction(pos)
         index = this.Session.MapCache.PeakIndices(pos(1), pos(2));
@@ -114,7 +125,7 @@ end
         oldf = gcf;
         % get roi
         [ofst, R] = deal(50, 25);
-        image = padarray(this.Session.Revealed, [ofst, ofst]);
+        image = padarray(this.Session.IlluMap, [ofst, ofst]);
         cter = center + ofst;
         [xslice, yslice] = deal(cter(1)+(-R:R), cter(2)+(-R:R));
         roi = image(xslice, yslice);
@@ -133,14 +144,16 @@ end
         % next and next adjust
         if info.kappa
             nextpos = stepForward();
-            nextadjust = adjustCenter(nextpos);
-            nextpos = nextpos - topleft + 1 + ofst;
-            nextadjust = nextadjust - topleft + 1 + ofst;
-            plot(nextpos(2), nextpos(1), ...
-                's', 'color', [1, 0.5, 0])
-            plot(nextadjust(2), nextadjust(1), 'rs')
-            octer = oldcenter - topleft + 1 + ofst;
-            plot(octer(2), octer(1), 'bs', 'MarkerSize', 3)
+            if this.Session.inbound(nextpos)
+                nextadjust = adjustCenter(nextpos);
+                nextpos = nextpos - topleft + 1 + ofst;
+                nextadjust = nextadjust - topleft + 1 + ofst;
+                plot(nextpos(2), nextpos(1), ...
+                    's', 'color', [1, 0.5, 0])
+                plot(nextadjust(2), nextadjust(1), 'rs')
+                octer = oldcenter - topleft + 1 + ofst;
+                plot(octer(2), octer(1), 'bs', 'MarkerSize', 3)
+            end
         end
         % section
         mindex = (length(sctn) + 1) / 2;
@@ -151,15 +164,19 @@ end
         % illuminations
         subplot(2, 2, 2), hold off
         L = length(info.illu);
+        lgd = {};
         if L > 0
             plot(info.illu), hold on
             minillu = max(info.illu) * minpct;
             plot([1, max(L, 2)], [minillu, minillu], ...
                 '-', 'Color', [1, 0.5, 0])
             title(sprintf('Pct = %.3f', illu / max(info.illu)))
+            lgd = [lgd, {'Ridge Illu'}, {'Min Illu'}];
         end
         L = max(L, 2);
         plot([1, L], [illu, illu], 'r--'), xlim([1, L])
+        lgd = [lgd, {'Current Illu'}];
+        legend(lgd, 'Location', 'Best')
         % restore and pause
         pause
     end

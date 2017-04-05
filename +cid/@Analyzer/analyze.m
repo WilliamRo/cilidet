@@ -48,6 +48,8 @@ if verbose
     end
 end % if verbose
 if showdetails
+    dtls.altiroi = altit;
+    dtls.deciroi = decis;
     [dtls.x1, dtls.y1] = deal(x, y);
     if ~isempty(ridge)
         % local position
@@ -57,14 +59,13 @@ if showdetails
         dtls.grayroi = sess.GrayImage(xrg, yrg);
         dtls.blurroi = sess.GrayBlurred(xrg, yrg);
         dtls.hatroi = sess.BgRemoved(xrg, yrg);
+        dtls.altiroi = sess.AltitudeMap(xrg, yrg);
         % local ridge
         topleft = [xrg(1), yrg(1)];
         dtls.locridge = ridge - repmat(topleft, size(ridge,1),1) + 1;
     else
         [dtls.grayroi, dtls.blurroi, dtls.hatroi] = deal(0.5);
     end
-    dtls.altiroi = altit;
-    dtls.deciroi = decis;
     % terrain
     peakindices = sess.MapCache.PeakIndices(xslice, yslice);
     peakindex = peakindices(x, y);

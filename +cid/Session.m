@@ -17,6 +17,7 @@ classdef Session < handle
         MapCache            % struct { Hidden, PeakIndices }
         DecisionMap
         Revealed
+        IlluMap
     end
     %% Private Constants
     properties (Constant, Access = private)
@@ -27,7 +28,8 @@ classdef Session < handle
             'Tmp', ...
             'EnhancedImage', ...
             'Revealed', ...
-            'DecisionMap1'};
+            'DecisionMap1', ...
+            'IlluMap'};
     end
     %% Public Methods
     methods (Access = public)

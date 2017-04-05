@@ -2,7 +2,7 @@ classdef Analyzer < handle
     %ANALYZER ...
     %   ...
     %% Private Properties
-    properties (Access = private)
+    properties (GetAccess = public, SetAccess = private)
         % Debug Option
         DebugMode = false
         % Detector
@@ -10,12 +10,13 @@ classdef Analyzer < handle
         % Parameters
         PixelTol = 8
         MinScore = 11
-        MinRidgeLength = 15
+        MinRidgeLength = 12
         StepLength = 1
         RidgeArgs = struct(...
+            'MaxLen', 100, ...
             'PeakRadius', 3, ...
-            'MinHealth', 0.45, ...
-            'MinIlluPct', 0.45)
+            'MinHealth', 0.35, ...
+            'MinIlluPct', 0.2)  % 0.45 blurred 39?
     end % Private Properties
     %% Public Methods
     methods (Access = public)

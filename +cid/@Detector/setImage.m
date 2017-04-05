@@ -42,6 +42,8 @@ this.Session.setMaps(maps);
 img = this.Session.AltitudeMap .* this.Session.GrayBlurred;
 % % img = imtophat(img, strel('disk', 4));
 this.Session.setImage('DecisionMap', img);
+illumap = imgaussfilt(this.Session.EnhancedImage, 1);
+this.Session.setImage('IlluMap', illumap);
 
 %% Enhance image
 % img = 
