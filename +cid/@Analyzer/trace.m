@@ -10,7 +10,7 @@ function info = trace(this, center, info)
 narginchk(2, 3)
 if nargin < 3, info = []; end
 if isempty(info), info = struct(...
-        'ridge', [], 'width', [], 'illu', [], 'alti', [], ...
+        'ridge', [], 'surf', [], 'illu', [], 'alti', [], ...
         'health', [], 'kappa', 0, 'sign', 1); end
 % debug option
 if ~this.DebugMode && length(info.illu) > this.RidgeArgs.MaxLen, ...
@@ -55,6 +55,7 @@ if ~isempty(info.illu) && illu < minpct * max(info.illu), return; end
 % record
 if info.kappa == 0
     [info.ridge, info.illu, info.health] = deal(center, illu, health);
+    info.surf = sctn(:, 2);
     % continue
     info.kappa = 1;
     info = this.trace(center, info);
@@ -66,10 +67,12 @@ else
         info.ridge = [info.ridge; center];
         info.illu = [info.illu; illu];
         info.health = [info.health; health];
+        info.surf = [info.surf, sctn(:, 2)];
     elseif info.kappa == -1
         info.ridge = [center; info.ridge];
         info.illu = [illu; info.illu];
         info.health = [health; info.health];
+        info.surf = [sctn(:, 2), info.surf];
     end
     % continue
     info = this.trace(center, info);
@@ -89,9 +92,9 @@ end
         % get section
         [tsctn, tidcs] = this.getSection(pos);
         % find peak
-        [~, pkid] = max(tsctn(mid - rad:mid + rad));
+        [~, pkid] = max(tsctn(mid - rad:mid + rad, 1));
         pkid = pkid + mid - rad - 1;
-        if tsctn(mid) < tsctn(pkid)
+        if tsctn(mid, 1) < tsctn(pkid, 1)
             pos = tidcs(pkid, :);
         end
     end % adjustCenter
@@ -114,6 +117,8 @@ end
         olddrct = Direction(oldcenter) * info.sign;
         newdrct = Direction(center);
         info.sign = sign(dot(olddrct, newdrct));
+        % flip section
+        if info.sign < 0, sctn(:, 2) = sctn(end:-1:1, 2); end
     end
 % getHealth
     function val = getHealth()

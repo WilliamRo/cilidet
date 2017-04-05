@@ -63,7 +63,9 @@ xlim(hAx(1), [1, L]), xlim(hAx(2), [1, L])
 tt = sprintf('Illumination and Health, Length = %d', ...
     length(dtls.ridgeinfo.illu));
 title(tt)
-% ...
+% surface
+subplot(3, 3, [7, 8])
+imshow(dtls.ridgeinfo.surf, []), title('Surface')
 
 %% Restore previous figure
 figure(cache)
