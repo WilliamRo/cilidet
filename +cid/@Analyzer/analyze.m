@@ -33,6 +33,32 @@ dtls.ridgeinfo = this.trace([glox, gloy]);
 dtls.bypass = dtls.bypass || ...
     size(dtls.ridgeinfo.ridge, 1) < this.MinRidgeLength;
 
+%% Evaluate illumination
+% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+dtls.slpop = 100;
+if isfield(dtls.ridgeinfo, 'illuR')
+    [illu, illuR] = deal(dtls.ridgeinfo.illu, dtls.ridgeinfo.illuR);
+    if length(illu) > 1
+        flag = sign(illu(1:end-1) - illu(2:end)) ~= ...
+            sign(illuR(1:end-1) - illuR(2:end));
+        dtls.slpop = sum(flag) / length(flag) * 100;
+    end % L > 0
+end
+% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+if isfield(dtls.ridgeinfo, 'illuR')
+    mg = floor(length(dtls.ridgeinfo.illuR) * 0.15);
+    dtls.illuvar = var(dtls.ridgeinfo.illuR(1+mg:end-mg)) * 1e4;
+    if dtls.illuvar < 1, dtls.bypass = true; end
+end
+
+%% Get terrain on ridgeinfo.surf, calculate score
+dtls.surfterr = this.Detector.RodDetector.getTerrain(...
+    dtls.ridgeinfo.surf);
+pkid = (this.Detector.RodDetector.KernelCount + 1) / 2;
+% xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+dtls.surfscore = (dtls.surfterr(pkid) - min(dtls.surfterr)) * 100;
+if dtls.surfscore<this.ScoreCoef*dtls.score, dtls.bypass = true; end
+
 %% Pack masses to show
 % ............................................................ mass
 if verbose

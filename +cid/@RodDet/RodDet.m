@@ -14,6 +14,10 @@ classdef RodDet < handle
         Perpendiculars      % (L, 2, N) array
         Ideal               % (1, N) array
     end % Read-only Properties
+    %% Private Properties
+    properties (Access = private)
+        ShorterRod = []
+    end
     %% Public Methods
     methods (Access = public)
         % Constructor
@@ -23,6 +27,7 @@ classdef RodDet < handle
         end % Constructor
         %
         maps = generateMaps(this, img)
+        terr = getTerrain(this, img)
         % [SHOW]
         showKernels(this)
     end % Public Methods

@@ -18,6 +18,7 @@ classdef Session < handle
         DecisionMap
         Revealed
         IlluMap
+        IlluRMap
     end
     %% Private Constants
     properties (Constant, Access = private)

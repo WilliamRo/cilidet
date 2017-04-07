@@ -42,11 +42,13 @@ if overlap, return; end
 updateSign()
 
 %% Decide whether to continue
+% extrct information
 health = getHealth();
 illu = this.Session.IlluMap(center(1), center(2));
-%
+illuR = this.Session.GrayBlurred(center(1), center(2));
+% plot in debug mode
 if this.DebugMode, plotSection(); end
-%
+% decide to return
 if health < this.RidgeArgs.MinHealth, return; end
 if ~isempty(info.illu) && illu < minpct * max(info.illu), return; end
 
@@ -55,7 +57,7 @@ if ~isempty(info.illu) && illu < minpct * max(info.illu), return; end
 % record
 if info.kappa == 0
     [info.ridge, info.illu, info.health] = deal(center, illu, health);
-    info.surf = sctn(:, 2);
+    [info.surf, info.illuR] = deal(sctn(:, 2), illuR);
     % continue
     info.kappa = 1;
     info = this.trace(center, info);
@@ -66,11 +68,13 @@ else
     if info.kappa == 1,
         info.ridge = [info.ridge; center];
         info.illu = [info.illu; illu];
+        info.illuR = [info.illuR; illuR];
         info.health = [info.health; health];
         info.surf = [info.surf, sctn(:, 2)];
     elseif info.kappa == -1
         info.ridge = [center; info.ridge];
         info.illu = [illu; info.illu];
+        info.illuR = [illuR; info.illuR];
         info.health = [health; info.health];
         info.surf = [sctn(:, 2), info.surf];
     end
@@ -161,9 +165,13 @@ end
             end
         end
         % section
-        mindex = (length(sctn) + 1) / 2;
+        L = size(sctn, 1);
+        [mindex, x] = deal((L + 1) / 2, 1:L);
         subplot(2, 2, 4), hold off
-        plot(sctn), hold on, plot(mindex, sctn(mindex), 'gs')
+        ax = plotyy(x, sctn(:, 1), x, sctn(:, 2)); hold on
+        xlim(ax(1), [1, L]), xlim(ax(2), [1, L])
+        ylabel(ax(1), 'Revealed'), ylabel(ax(2), 'Blurred')
+        plot(mindex, sctn(mindex, 1), 'gs')
         tt = sprintf('Health = %.2f, Illu = %.2f', health, illu);
         title(tt), xlim([1, length(sctn)])
         % illuminations

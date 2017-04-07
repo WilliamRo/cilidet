@@ -9,14 +9,16 @@ classdef Analyzer < handle
         Detector
         % Parameters
         PixelTol = 8
-        MinScore = 11
+        MinScore = 10
         MinRidgeLength = 12
         StepLength = 1
         RidgeArgs = struct(...
             'MaxLen', 100, ...
             'PeakRadius', 3, ...
             'MinHealth', 0.35, ...
-            'MinIlluPct', 0.2)  % 0.45 blurred 39?
+            'MinIlluPct', 0.18)  % 0.45 blurred 39?
+        % xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        ScoreCoef = 0.0
     end % Private Properties
     %% Public Methods
     methods (Access = public)
