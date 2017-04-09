@@ -4,7 +4,7 @@ de = cid.Detector;
 vr = imv.ImageViewer;
 
 %% Read image and preprocess
-index = 28;
+index = 3;
 de.setImage(bmk(index));
 gray_image = de.Session.GrayImage;
 vr.addImage(gray_image, 'Gray Image');

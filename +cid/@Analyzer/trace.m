@@ -62,7 +62,9 @@ end
 % ............................................................. delta
 ideal = this.Detector.RodDetector.IdealSection;
 scaledsctn = sctn(:, 1) / sctn(mid, 1);
-delta = mean(abs(ideal - scaledsctn)) * 100;
+deltaRad = 5;
+deltaSlice = mid - deltaRad : mid + deltaRad;
+delta = mean(abs(ideal(deltaSlice) - scaledsctn(deltaSlice))) * 100;
 %
 % plot in debug mode
 if this.DebugMode, plotSection(); end
@@ -194,12 +196,9 @@ end
         subplot(2, 2, 4), hold off
         ax = plotyy(x, sctn(:, 1), x, sctn(:, 2)); hold on
         xlim(ax(1), [1, L]), xlim(ax(2), [1, L])
-%         ylim(ax(1), [0, 1]), ylim(ax(2), [0, 1])
         ylabel(ax(1), 'Revealed'), ylabel(ax(2), 'Blurred')
-        plot(mid, sctn(mid, 1), 'gs')
-        % ???????????????????????????????????????????????????? Start
         plot(sctn(mid, 1) * ideal, 'r:')
-        % ???????????????????????????????????????????????????? End
+        plot([mid - deltaRad, mid + deltaRad], [0, 0], 'rd')
         tt = sprintf('Illu = %.2f, delta = %.1f', illu, delta);
         title(tt), xlim([1, length(sctn)])
         % illuminations

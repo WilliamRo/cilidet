@@ -44,9 +44,6 @@ img = this.Session.AltitudeMap .* this.Session.GrayBlurred;
 this.Session.setImage('DecisionMap', img);
 illumap = imgaussfilt(this.Session.EnhancedImage, 1);
 this.Session.setImage('IlluMap', illumap);
-% 
-% illumap = imgaussfilt(this.Session.EnhancedImage, 1);
-% this.Session.setImage('IlluMap', illumap);
 
 %% Enhance image
 % img = 

@@ -23,21 +23,25 @@ yin = (yslice(1)==1 || y>w/4+1/2) && (yslice(end)==W || y<3*w/4+1/2);
 inside = xin && yin;
 % ............................................................ score
 dtls.score = 100 * altit(x, y);
-% ............................................................ bypass
+% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> bypass : MinScore
 dtls.bypass = ~inside || (dtls.score < this.MinScore);       
 if ~showdetails && dtls.bypass, return; end
 
 %% Find ridge
 [glox, gloy] = deal(xslice(1) + x - 1, yslice(1) + y - 1);
 currentFid = gcf;
+% ........................................................ ridgeinfo
 dtls.ridgeinfo = this.trace([glox, gloy]);
+% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> bypass : MinRidgeLength
 dtls.bypass = dtls.bypass || ...
     size(dtls.ridgeinfo.ridge, 1) < this.MinRidgeLength;
 if this.DebugMode, figure(currentFid); end
 
 %% Get terrain on ridgeinfo.surf, calculate score
+% ............................................. surfterr & surfscore
 [dtls.surfterr, dtls.surfscore] = ...
     this.Detector.RodDetector.getTerrain(dtls.ridgeinfo.surf);
+% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> bypass : SurfMinScore
 if dtls.surfscore < this.SurfMinScore, dtls.bypass = true; end
 
 %% Pack masses to show

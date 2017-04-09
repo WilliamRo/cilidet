@@ -60,10 +60,11 @@ legend('actual terrain', 'expected terrain', 'surface terrain', ...
 subplot(3, 3, [4, 5]), hold off
 L = length(dtls.ridgeinfo.illu);
 x = 1:L;
-hAx = plotyy(x, dtls.ridgeinfo.illu, x, dtls.ridgeinfo.alti);
-ylabel(hAx(1),'Illumination'), ylabel(hAx(2),'Altitude')
+hAx = plotyy(x, dtls.ridgeinfo.illu, x, dtls.ridgeinfo.deltas);
+ylabel(hAx(1),'Illumination'), ylabel(hAx(2),'Deltas')
 xlim(hAx(1), [1, L]), xlim(hAx(2), [1, L])
-tt = sprintf('Illu and Alti');
+tt = sprintf('Illumination and Deltas, mean(deltas) = %.1f', ...
+    mean(dtls.ridgeinfo.deltas));
 title(tt)
 % surface
 subplot(3, 3, [7, 8])
