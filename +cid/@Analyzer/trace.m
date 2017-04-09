@@ -11,13 +11,14 @@ narginchk(2, 3)
 if nargin < 3, info = []; end
 if isempty(info), info = struct(...
         'ridge', [], 'surf', [], 'illu', [], 'alti', [], ...
-        'health', [], 'kappa', 0, 'sign', 1); end
+        'deltas', [], 'kappa', 0, 'sign', 1, 'peak', 0); end
 % debug option
 if ~this.DebugMode && length(info.illu) > this.RidgeArgs.MaxLen, ...
     return; end
 % multi-scope variable
 rad = this.RidgeArgs.PeakRadius;
-mid = (this.Detector.RodDetector.RodLength + 1) / 2;
+L = this.Detector.RodDetector.RodLength;
+mid = (L + 1) / 2;
 minpct = this.RidgeArgs.MinIlluPct;
 
 %% Move forward
@@ -43,39 +44,61 @@ updateSign()
 
 %% Decide whether to continue
 % extrct information
-health = getHealth();
-illu = this.Session.IlluMap(center(1), center(2));
-illuR = this.Session.GrayBlurred(center(1), center(2));
+% ............................................................. Illus
+ext = this.IlluExt;
+illu = sum(sctn(mid-ext:mid+ext, 1));
+illuR = sum(sctn(mid-ext:mid+ext, 2));
+alti = sctn(mid, 3);
+% ............................................................. decay
+decay = 0;
+if ~isempty(info.illu)
+    % get previous illumination
+    if info.kappa == 1, prev = info.illu(end); 
+    else prev = info.illu(1); end
+    % calculate decay
+    if illu > prev, info.peak = illu;
+    else decay = 1 - illu / info.peak; end
+end
+% ............................................................. delta
+ideal = this.Detector.RodDetector.IdealSection;
+scaledsctn = sctn(:, 1) / sctn(mid, 1);
+delta = mean(abs(ideal - scaledsctn)) * 100;
+%
 % plot in debug mode
 if this.DebugMode, plotSection(); end
+% ====================================================================
 % decide to return
-if health < this.RidgeArgs.MinHealth, return; end
+% ............................................................. Illus
 if ~isempty(info.illu) && illu < minpct * max(info.illu), return; end
-
+% ............................................................. decay
+if decay > this.RidgeArgs.MaxDecay, return; end
+% ............................................................. delta
+if delta > 50, return; end
 
 %% Recurse
 % record
 if info.kappa == 0
-    [info.ridge, info.illu, info.health] = deal(center, illu, health);
-    [info.surf, info.illuR] = deal(sctn(:, 2), illuR);
+    [info.ridge, info.illu, info.deltas] = deal(center, illu, delta);
+    [info.surf, info.illuR, info.alti] = deal(sctn(:, 2),illuR,alti);
     % continue
-    info.kappa = 1;
+    [info.kappa, info.sign, info.peak] = deal(1, 1, 0);
     info = this.trace(center, info);
-    info.kappa = -1;
-    info.sign = 1;
+    [info.kappa, info.sign, info.peak] = deal(-1, 1, info.illu(1));
     info = this.trace(center, info);
 else
     if info.kappa == 1,
         info.ridge = [info.ridge; center];
         info.illu = [info.illu; illu];
         info.illuR = [info.illuR; illuR];
-        info.health = [info.health; health];
+        info.alti = [info.alti; alti];
+        info.deltas = [info.deltas; delta];
         info.surf = [info.surf, sctn(:, 2)];
     elseif info.kappa == -1
         info.ridge = [center; info.ridge];
         info.illu = [illu; info.illu];
         info.illuR = [illuR; info.illuR];
-        info.health = [health; info.health];
+        info.alti = [alti; info.alti];
+        info.deltas = [delta; info.deltas];
         info.surf = [sctn(:, 2), info.surf];
     end
     % continue
@@ -124,55 +147,60 @@ end
         % flip section
         if info.sign < 0, sctn(:, 2) = sctn(end:-1:1, 2); end
     end
-% getHealth
-    function val = getHealth()
-        mask = abs((1:length(sctn)) - mid) <= rad;
-        val = sum(sctn(mask)) / sum(sctn(~mask));
-    end
 % plot section
     function plotSection()
-        oldf = gcf;
         % get roi
         [ofst, R] = deal(50, 25);
-        image = padarray(this.Session.IlluMap, [ofst, ofst]);
+        % ...................................................... maps
+        illumap = padarray(this.Session.IlluMap, [ofst, ofst]);
+        blurmap = padarray(this.Session.GrayBlurred, [ofst, ofst]);
         cter = center + ofst;
         [xslice, yslice] = deal(cter(1)+(-R:R), cter(2)+(-R:R));
-        roi = image(xslice, yslice);
+        illumaproi = illumap(xslice, yslice);
+        blurroi = blurmap(xslice, yslice);
         % get ppdc
         topleft = [xslice(1), yslice(1)];
         ppdc = idcs - repmat(topleft, size(idcs, 1), 1) + 1 + ofst;
-        o = (size(roi, 1) + 1) / 2;
+        o = (size(illumaproi, 1) + 1) / 2;
         % roi and ppdc
         f = figure(cid.config.SectionFigureID);
         ftt = sprintf('Section, kappa = %d', info.kappa);
         [f.Name, f.NumberTitle] = deal(ftt, 'off');
         [f.ToolBar, f.MenuBar] = deal('none');
-        subplot(1, 2, 1), hold off
-        imshow(roi, []), hold on
-        plot(ppdc(:, 2), ppdc(:, 1), 'g-'), plot(o, o, 'ys')
-        % next and next adjust
-        if info.kappa
-            nextpos = stepForward();
-            if this.Session.inbound(nextpos)
-                nextadjust = adjustCenter(nextpos);
-                nextpos = nextpos - topleft + 1 + ofst;
-                nextadjust = nextadjust - topleft + 1 + ofst;
-                plot(nextpos(2), nextpos(1), ...
-                    's', 'color', [1, 0.5, 0])
-                plot(nextadjust(2), nextadjust(1), 'rs')
-                octer = oldcenter - topleft + 1 + ofst;
-                plot(octer(2), octer(1), 'bs', 'MarkerSize', 3)
+        showROI(illumaproi, {2, 2, 1}, 'IlluMap')
+        showROI(blurroi, {2, 2, 3}, 'BlurMap')
+        function showROI(img, subplt, tt)
+            subplot(subplt{:}), hold off
+            imshow(img, []), hold on
+            plot(ppdc(:, 2), ppdc(:, 1), 'g-'), plot(o, o, 'ys')
+            % next and next adjust
+            if info.kappa
+                nextpos = stepForward();
+                if this.Session.inbound(nextpos)
+                    nextadjust = adjustCenter(nextpos);
+                    nextpos = nextpos - topleft + 1 + ofst;
+                    nextadjust = nextadjust - topleft + 1 + ofst;
+                    plot(nextpos(2), nextpos(1), ...
+                        's', 'color', [1, 0.5, 0])
+                    plot(nextadjust(2), nextadjust(1), 'rs')
+                    octer = oldcenter - topleft + 1 + ofst;
+                    plot(octer(2), octer(1), 'bs', 'MarkerSize', 3)
+                end
             end
+            title(tt)
         end
         % section
-        L = size(sctn, 1);
-        [mindex, x] = deal((L + 1) / 2, 1:L);
+        x = 1:L;
         subplot(2, 2, 4), hold off
         ax = plotyy(x, sctn(:, 1), x, sctn(:, 2)); hold on
         xlim(ax(1), [1, L]), xlim(ax(2), [1, L])
+%         ylim(ax(1), [0, 1]), ylim(ax(2), [0, 1])
         ylabel(ax(1), 'Revealed'), ylabel(ax(2), 'Blurred')
-        plot(mindex, sctn(mindex, 1), 'gs')
-        tt = sprintf('Health = %.2f, Illu = %.2f', health, illu);
+        plot(mid, sctn(mid, 1), 'gs')
+        % ???????????????????????????????????????????????????? Start
+        plot(sctn(mid, 1) * ideal, 'r:')
+        % ???????????????????????????????????????????????????? End
+        tt = sprintf('Illu = %.2f, delta = %.1f', illu, delta);
         title(tt), xlim([1, length(sctn)])
         % illuminations
         subplot(2, 2, 2), hold off
@@ -183,14 +211,15 @@ end
             minillu = max(info.illu) * minpct;
             plot([1, max(L, 2)], [minillu, minillu], ...
                 '-', 'Color', [1, 0.5, 0])
-            title(sprintf('Pct = %.3f', illu / max(info.illu)))
+            title(sprintf('Pct = %.1f, Decay = %.1f', ...
+                100 * illu / max(info.illu), 100 * decay))
             lgd = [lgd, {'Ridge Illu'}, {'Min Illu'}];
         end
         L = max(L, 2);
         plot([1, L], [illu, illu], 'r--'), xlim([1, L])
         lgd = [lgd, {'Current Illu'}];
         legend(lgd, 'Location', 'Best')
-        % restore and pause
+        % pause
         pause
     end
 

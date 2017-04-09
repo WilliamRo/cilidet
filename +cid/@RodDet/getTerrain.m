@@ -1,9 +1,12 @@
-function terr = getTerrain(this, img)
+function [terr, score] = getTerrain(this, img)
 %RODDET::GETALTITUDE ...
 %   ...
 
 %% Initialize
-if isempty(img), terr = zeros(1, this.RodLength); return; end
+if isempty(img)
+    [terr, score] = deal(zeros(1, this.RodLength), 0); 
+    return
+end
 if mod(size(img, 2), 2) == 0, img = img(:, 1:end-1); end
 rod = getShorterRod();
 S = rod.RoiSize;  [H, W] = size(img);
@@ -27,6 +30,7 @@ end
 %% Output
 terr = terr / max(terr);
 terr = cid.utils.shift2center(1, terr);
+score = 100 * (terr((N + 1) / 2) - min(terr));
 
 %% Worker Method
     function rod = getShorterRod()

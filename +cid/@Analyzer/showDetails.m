@@ -58,19 +58,33 @@ legend('actual terrain', 'expected terrain', 'surface terrain', ...
 
 %% Illumination and health
 % illu
+illu = cid.utils.rescale(dtls.ridgeinfo.illu);
+alti = cid.utils.rescale(dtls.ridgeinfo.alti);
 subplot(3, 3, [4, 5]), hold off
 L = length(dtls.ridgeinfo.illu);
 x = 1:L;
-hAx = plotyy(x, dtls.ridgeinfo.illu, x, dtls.ridgeinfo.illuR);
-ylabel(hAx(1),'Illumination'), ylabel(hAx(2),'IlluminationR')
+hAx = plotyy(x, dtls.ridgeinfo.illu, x, dtls.ridgeinfo.alti);
+ylabel(hAx(1),'Illumination'), ylabel(hAx(2),'Altitude')
 xlim(hAx(1), [1, L]), xlim(hAx(2), [1, L])
-tt = sprintf('illu and illuR, delta = %.1f, var = %.1f', ...
-    dtls.slpop, dtls.illuvar);
+% ???????????????????????????????????????????????????????????????????
+% dillu = illu(1:end-1) - illu(2:end);
+% ddillu = dillu(1:end-1) - dillu(2:end);
+% roughmap = abs(100 * ddillu);
+% ofst = floor(0.1 * length(roughmap));
+% rough = mean(roughmap(1+ofst:end-ofst));
+tt = sprintf('Illu and Alti');
 title(tt)
 % surface
 subplot(3, 3, [7, 8])
-imshow(dtls.ridgeinfo.surf, [])
-title(sprintf('Surface, Length = %d', length(dtls.ridgeinfo.illu)))
+% ??????????????????????????????????????????????????????????????????
+plot(2:length(illu)-1, dtls.roughmap)
+title(sprintf('ddillu, rough = %.1f, finalscore = %.1f', ...
+    dtls.rough, dtls.finalscore))
+xlim([1, length(illu)])
+ylim([0, 50])
+%
+% imshow(dtls.ridgeinfo.surf, [])
+% title(sprintf('Surface, Length = %d', length(dtls.ridgeinfo.illu)))
 
 %% Restore previous figure
 figure(cache)

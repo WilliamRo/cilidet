@@ -13,6 +13,7 @@ classdef RodDet < handle
         Skeletons           % (L, 2, N) array
         Perpendiculars      % (L, 2, N) array
         Ideal               % (1, N) array
+        IdealSection
     end % Read-only Properties
     %% Private Properties
     properties (Access = private)
@@ -27,7 +28,7 @@ classdef RodDet < handle
         end % Constructor
         %
         maps = generateMaps(this, img)
-        terr = getTerrain(this, img)
+        [terr, score] = getTerrain(this, img)
         % [SHOW]
         showKernels(this)
     end % Public Methods
