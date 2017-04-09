@@ -31,16 +31,12 @@ img = max(img1, img2);
 % this.Session.setImage('Tmp', dots)
 enhanced = img;
 this.Session.setImage('EnhancedImage', enhanced)
-%
-img = imclose(img, strel('disk', 4));
-this.Session.setImage('Revealed', img)
 
 %% Generate maps
 maps = this.RodDetector.generateMaps(this.Session.GrayBlurred);
 this.Session.setMaps(maps);
 % reveal
 img = this.Session.AltitudeMap .* this.Session.GrayBlurred;
-% % img = imtophat(img, strel('disk', 4));
 this.Session.setImage('DecisionMap', img);
 illumap = imgaussfilt(this.Session.EnhancedImage, 1);
 this.Session.setImage('IlluMap', illumap);

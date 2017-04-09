@@ -35,7 +35,8 @@ dtls.ridgeinfo = this.trace([glox, gloy]);
 % >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> bypass : MinRidgeLength
 dtls.bypass = dtls.bypass || ...
     size(dtls.ridgeinfo.ridge, 1) < this.MinRidgeLength;
-if this.DebugMode, figure(currentFid); end
+% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ????
+if mean(dtls.ridgeinfo.deltas) > 20, dtls.bypass = true; end
 
 %% Get terrain on ridgeinfo.surf, calculate score
 % ............................................. surfterr & surfscore
@@ -45,6 +46,7 @@ if this.DebugMode, figure(currentFid); end
 if dtls.surfscore < this.SurfMinScore, dtls.bypass = true; end
 
 %% Pack masses to show
+if this.DebugMode, figure(currentFid); end
 % ............................................................ mass
 if verbose
     edge = 7;

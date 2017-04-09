@@ -73,7 +73,7 @@ if this.DebugMode, plotSection(); end
 % ............................................................. Illus
 if ~isempty(info.illu) && illu < minpct * max(info.illu), return; end
 % ............................................................. decay
-if decay > this.RidgeArgs.MaxDecay, return; end
+if decay > this.RidgeArgs.MaxDecay && delta > 20, return; end
 % ............................................................. delta
 if delta > 50, return; end
 
