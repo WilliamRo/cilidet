@@ -4,9 +4,14 @@ function cilia = detect(this, image, varargin)
 
 %% Check input
 narginchk(2, 99)
+debug = ~isempty(find(strcmp(varargin, 'debug'), 1));
 verbose = ~isempty(find(strcmp(varargin, 'verbose'), 1));
 showdetails = ~isempty(find(strcmp(varargin, 'details'), 1));
 showindow = ~isempty(find(strcmp(varargin, 'window'), 1));
+% level 1
+showdetails = showdetails || debug;
+showindow = showindow || showdetails;
+% level 2
 verbose = verbose || showdetails;
 
 %% Set image and preprocess
@@ -25,16 +30,15 @@ r = [];
 while ~scanner.Finish
     % analyze
     [xslice, yslice] = scanner.next();
-    dtls = this.Analyzer.analyze(xslice, yslice, varargin{:});
     if showindow
         pos = [yslice(1), xslice(1), ...
             yslice(end) - yslice(1) + 1, xslice(end) - xslice(1) + 1];
         r = rectangle('Position', pos, ...
             'EdgeColor', 'yellow', 'LineStyle', ':');
-        pause(0.5), delete(r)
     end
+    dtls = this.Analyzer.analyze(xslice, yslice, varargin{:});
     % bypass
-    if dtls.bypass, continue; end
+    if dtls.bypass, delete(r), continue; end
     % add cilia
     [cilia{index}, index] = deal(dtls.ridgeinfo.ridge, index + 1);
     % verbose option
@@ -44,7 +48,7 @@ while ~scanner.Finish
         if showdetails && index > 0
             figure(cid.config.DetailFigureID)
             this.Analyzer.showDetails(dtls)
-            pause
+            pause, figure(cid.config.PadFigureID), delete(r)
         end % if show detail
     end % if verbose
 end % while

@@ -109,9 +109,9 @@ end
 % stepForward
     function newpos = stepForward(pos)
         if nargin < 1, pos = center; end
-        delta = Direction(pos) * info.kappa * ...
+        stepdelta = Direction(pos) * info.kappa * ...
             info.sign * this.StepLength;
-        newpos = round(pos + delta);
+        newpos = round(pos + stepdelta);
     end
 % adjustCenter
     function [pos, tsctn, tidcs] = adjustCenter(pos)
