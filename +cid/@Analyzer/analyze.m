@@ -35,8 +35,9 @@ dtls.ridgeinfo = this.trace([glox, gloy]);
 % >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> bypass : MinRidgeLength
 dtls.bypass = dtls.bypass || ...
     size(dtls.ridgeinfo.ridge, 1) < this.MinRidgeLength;
-% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ????
-if mean(dtls.ridgeinfo.deltas) > 20, dtls.bypass = true; end
+% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> section shape constrains
+if mean(dtls.ridgeinfo.deltas) > this.MaxMeanDeltas, ...
+    dtls.bypass = true; end
 
 %% Get terrain on ridgeinfo.surf, calculate score
 % ............................................. surfterr & surfscore

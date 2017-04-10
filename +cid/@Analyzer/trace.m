@@ -11,7 +11,8 @@ narginchk(2, 3)
 if nargin < 3, info = []; end
 if isempty(info), info = struct(...
         'ridge', [], 'surf', [], 'illu', [], 'alti', [], ...
-        'deltas', [], 'kappa', 0, 'sign', 1, 'peak', 0); end
+        'deltas', [], 'kappa', 0, 'sign', 1, 'peak', 0, ...
+        'negdelta', []); end
 % debug option
 if ~this.DebugMode && length(info.illu) > this.RidgeArgs.MaxLen, ...
     return; end
@@ -64,7 +65,11 @@ ideal = this.Detector.RodDetector.IdealSection;
 scaledsctn = sctn(:, 1) / sctn(mid, 1);
 deltaRad = 5;
 deltaSlice = mid - deltaRad : mid + deltaRad;
-delta = mean(abs(ideal(deltaSlice) - scaledsctn(deltaSlice))) * 100;
+delta = scaledsctn(deltaSlice) - ideal(deltaSlice);
+% .........................................................? negdelta
+negdelta = -sum(delta(delta < 0)) * 10;
+if negdelta == 0, negdelta = 0; end % ...
+absdelta = mean(abs(delta)) * 100;
 %
 % plot in debug mode
 if this.DebugMode, plotSection(); end
@@ -73,14 +78,15 @@ if this.DebugMode, plotSection(); end
 % ............................................................. Illus
 if ~isempty(info.illu) && illu < minpct * max(info.illu), return; end
 % ............................................................. decay
-if decay > this.RidgeArgs.MaxDecay && delta > 20, return; end
+if decay > this.RidgeArgs.MaxDecay && absdelta > 20, return; end
 % ............................................................. delta
-if delta > 50, return; end
+if absdelta > this.RidgeArgs.MaxAbsDelta, return; end
 
 %% Recurse
 % record
 if info.kappa == 0
-    [info.ridge, info.illu, info.deltas] = deal(center, illu, delta);
+    [info.ridge, info.illu] = deal(center, illu);
+    [info.deltas, info.negdeltas] = deal(absdelta, negdelta);
     [info.surf, info.illuR, info.alti] = deal(sctn(:, 2),illuR,alti);
     % continue
     [info.kappa, info.sign, info.peak] = deal(1, 1, 0);
@@ -93,14 +99,16 @@ else
         info.illu = [info.illu; illu];
         info.illuR = [info.illuR; illuR];
         info.alti = [info.alti; alti];
-        info.deltas = [info.deltas; delta];
+        info.deltas = [info.deltas; absdelta];
+        info.negdeltas = [info.negdeltas; negdelta];
         info.surf = [info.surf, sctn(:, 2)];
     elseif info.kappa == -1
         info.ridge = [center; info.ridge];
         info.illu = [illu; info.illu];
         info.illuR = [illuR; info.illuR];
         info.alti = [alti; info.alti];
-        info.deltas = [delta; info.deltas];
+        info.deltas = [absdelta; info.deltas];
+        info.negdeltas = [negdelta; info.negdeltas];
         info.surf = [sctn(:, 2), info.surf];
     end
     % continue
@@ -199,7 +207,8 @@ end
         ylabel(ax(1), 'Revealed'), ylabel(ax(2), 'Blurred')
         plot(sctn(mid, 1) * ideal, 'r:')
         plot([mid - deltaRad, mid + deltaRad], [0, 0], 'rd')
-        tt = sprintf('Illu = %.2f, delta = %.1f', illu, delta);
+        tt = sprintf('delta = %.1f, negdelta = %.1f', ...
+            absdelta, negdelta);
         title(tt), xlim([1, length(sctn)])
         % illuminations
         subplot(2, 2, 2), hold off

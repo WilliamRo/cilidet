@@ -63,8 +63,9 @@ x = 1:L;
 hAx = plotyy(x, dtls.ridgeinfo.illu, x, dtls.ridgeinfo.deltas);
 ylabel(hAx(1),'Illumination'), ylabel(hAx(2),'Deltas')
 xlim(hAx(1), [1, L]), xlim(hAx(2), [1, L])
-tt = sprintf('Illumination and Deltas, mean(deltas) = %.1f', ...
-    mean(dtls.ridgeinfo.deltas));
+tt = sprintf(['Illumination and Deltas, mean(deltas) = %.1f, ', ...
+    'sum(negdelta) = %.1f'], mean(dtls.ridgeinfo.deltas), ...
+    sum(dtls.ridgeinfo.negdeltas));
 title(tt)
 % surface
 subplot(3, 3, [7, 8])
