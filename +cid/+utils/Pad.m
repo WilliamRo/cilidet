@@ -3,25 +3,30 @@ classdef Pad < handle
     %   ...
     %% Private Properties
     properties (Access = private)
+        Cursor
         Background
         Title
         Rectangles = {}
         ProbeMode
         Detector = []
         Args = {}
+        AxesUno
+        AxesDos
     end % Private Properties
     %% Public Methods
     methods (Access = public)
         % Constructor
         function this = Pad(image, title, detector, varargin)
+            this.Cursor = 0;
             % check input
             if nargin < 2 || isempty(title), title = 'Pad'; end
             if nargin < 3, detector = []; end
             this.Title = title;
-            this.ProbeMode = isa(detector, 'cid.Detector');
+            if ~isempty(detector), ...
+                assert(isa(detector, 'cid.Detector')); end
+            this.Detector = detector;
+            this.ProbeMode = (strcmp(title, 'Probe'));
             this.Args = varargin;
-            % set detector
-            if this.ProbeMode, this.Detector = detector; end
             % set this.Background
             this.Background = image;
             % show background
@@ -55,10 +60,13 @@ classdef Pad < handle
             f.Position = [(screenSize - imgSize * scale) / 2, ...
                 imgSize * scale];
             % create axes
-            ax = axes('Units', 'normalized', ...
+            this.AxesDos = axes('Units', 'normalized', ...
+                'Position', [0 0 1 1], 'NextPlot', 'replace');
+            this.AxesUno = axes('Units', 'normalized', ...
                 'Position', [0 0 1 1], 'NextPlot', 'replace');
             % show background
             imshow(this.Background, [])
+            
         end
         function drawRect(this, position, showID)
             cache = gcf;
@@ -93,7 +101,7 @@ function btnPressed(f, callbackdata)
         case {'escape', 'q'}
             fprintf('!> [%s] figure has been closed.\n', f.Name)
             close(f)
-        case {'return', 'space'}
+        case {'space'}
             [detector, pad] = deal(f.UserData{:});
             if isempty(detector), return; end
             h = imrect; pos = floor(wait(h)); delete(h);
@@ -102,9 +110,43 @@ function btnPressed(f, callbackdata)
             dtls = detector.Analyzer.analyze(...
                 xslice, yslice, 'details', pad.Args{:});
             detector.Analyzer.showDetails(dtls);
+        case {'return'}
+            [~, pad] = deal(f.UserData{:});
+            pad.Cursor = 0;
+            onCursorChanged(f, pad)
+        case {'leftarrow', 'h'}
+            [~, pad] = deal(f.UserData{:});
+            pad.Cursor = pad.Cursor - 1;
+            onCursorChanged(f, pad)
+        case {'rightarrow', 'l'}
+            [~, pad] = deal(f.UserData{:});
+            pad.Cursor = pad.Cursor + 1;
+            onCursorChanged(f, pad)
         otherwise
-            pause('off')
-            pause('on')
+            %
     end % switch
+end
+%
+function onCursorChanged(f, pad)
+
+% initliaze 
+detector = pad.Detector;
+if isempty(detector), return; end
+sess = detector.Session;
+blist = sess.ValidBrowseList;
+L = length(blist);
+if ~L, return; end
+
+% check cursor
+if pad.Cursor < 0, pad.Cursor = L; 
+elseif pad.Cursor > L, pad.Cursor = 0; end
+
+% show image
+if pad.Cursor == 0, axes(pad.AxesUno), f.Name = pad.Title;
+else axes(pad.AxesDos), 
+    imshow(sess.(blist{pad.Cursor}), [])
+    f.Name = sprintf('%s - %s', pad.Title, blist{pad.Cursor}); 
+end
+
 end
 

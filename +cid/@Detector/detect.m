@@ -21,7 +21,8 @@ this.setImage(image)
 [cilia, index] = deal({}, 1);
 % scan
 if verbose, 
-    pad = cid.utils.Pad(this.Session.GrayImage, 'Cilia Detector'); 
+    pad = cid.utils.Pad(this.Session.GrayImage, 'Cilia Detector', ...
+        this); 
 end
 repeat = this.ScanParams.Repeat;
 scanner = cid.utils.Scanner(size(this.Session.GrayImage), ...

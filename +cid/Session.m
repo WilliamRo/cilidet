@@ -63,6 +63,16 @@ classdef Session < handle
             flag = pos(1) >= 1 && pos(1) <= H && ...
                 pos(2) >= 1 && pos(2) <= W;
         end % flag
+        % Property Methods
+        function lst = ValidBrowseList(this)
+            lst = {};
+            for i = 1 : length(this.BrowseList)
+                str = this.BrowseList{i};
+                if ~isprop(this, str) || isempty(this.(str))
+                    continue; end
+                lst = [lst, {str}];
+            end
+        end % getBrowseList
     end % public methods
     
 end

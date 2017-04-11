@@ -24,11 +24,11 @@ this.Session.setImage('GrayBlurred', img);
 % remove background (img is GrayBlurred)
 img = imtophat(img, strel('disk', this.EnhanceParams.DiskSize));
 this.Session.setImage('BgRemoved', img)
+% remove dots (necessary)
 img1 = this.DotKiller.filter(img);
 img2 = this.CowBoy.filter(img);
 img = max(img1, img2);
-% dots = this.Session.BgRemoved - img;
-% this.Session.setImage('Tmp', dots)
+% enhanced image
 enhanced = img;
 this.Session.setImage('EnhancedImage', enhanced)
 

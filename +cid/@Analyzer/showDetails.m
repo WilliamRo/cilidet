@@ -7,7 +7,6 @@ cache = gcf;
 f = figure(cid.config.DetailFigureID);
 [f.Name, f.NumberTitle] = deal('Details', 'off');
 [f.ToolBar, f.MenuBar] = deal('none');
-sess = this.Session;
 
 %% ROI and ...
 % gray roi
@@ -59,10 +58,13 @@ legend('actual terrain', 'expected terrain', 'surface terrain', ...
 %% Illumination and health
 subplot(3, 3, [4, 5]), hold off
 L = length(dtls.ridgeinfo.illu);
+if L > 0
 x = 1:L;
-hAx = plotyy(x, dtls.ridgeinfo.illu, x, dtls.ridgeinfo.deltas);
-ylabel(hAx(1),'Illumination'), ylabel(hAx(2),'Deltas')
+hAx = plotyy(x, dtls.ridgeinfo.deltas, x, dtls.ridgeinfo.illu);
+ylabel(hAx(1),'Deltas'), ylabel(hAx(2),'Illumination')
 xlim(hAx(1), [1, L]), xlim(hAx(2), [1, L])
+mask = dtls.ridgeinfo.negdeltas > 0;
+hold on, plot(x(mask), dtls.ridgeinfo.deltas(mask), 'rs')
 tt = sprintf(['Illumination and Deltas, mean(deltas) = %.1f, ', ...
     'sum(negdelta) = %.1f'], mean(dtls.ridgeinfo.deltas), ...
     sum(dtls.ridgeinfo.negdeltas));
@@ -71,6 +73,7 @@ title(tt)
 subplot(3, 3, [7, 8])
 imshow(dtls.ridgeinfo.surf, [])
 title(sprintf('Surface, Length = %d', length(dtls.ridgeinfo.illu)))
+end
 
 %% Restore previous figure
 figure(cache)
