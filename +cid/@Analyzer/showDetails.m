@@ -12,7 +12,7 @@ f = figure(cid.config.DetailFigureID);
 % gray roi
 orange = {'Color', [1, 0.5, 0]};
 subplot(3, 9, [1, 2]), hold off
-imshow(dtls.grayroi, []), title('Gray'), hold on
+imshow(dtls.grayroi, []), title('Raw Image'), hold on
 if dtls.hasridge
     plot(dtls.locridge(:, 2), dtls.locridge(:, 1), 'g')
     plot(dtls.locridge(end, 2), ...
@@ -22,7 +22,7 @@ end
 cid.utils.freezeColors
 % tophated
 subplot(3, 9, [3, 4]), hold off
-imshow(dtls.hatroi, []), title('Tophated'), hold on
+imshow(dtls.hatroi, []), title('Ridge Map'), hold on
 if dtls.hasridge
     plot(dtls.y, dtls.x, 'o', 'MarkerSize', 4, orange{:})
     plot(dtls.locridge(:, 2), dtls.locridge(:, 1), 'g:')
@@ -30,7 +30,7 @@ end
 cid.utils.freezeColors
 % altitude
 subplot(3, 9, [5, 6]), hold off
-imshow(dtls.altiroi, []), title('Altitude'), hold on
+imshow(dtls.altiroi, []), title('Altitude Map'), hold on
 if dtls.hasridge
     plot(dtls.y, dtls.x, 'o', 'MarkerSize', 4, orange{:})
     plot(dtls.locridge(:, 2), dtls.locridge(:, 1), 'g:')
@@ -54,6 +54,19 @@ set(gca, 'XTickLabel', dtls.order), xlabel('kernel index')
 title(tt), ylim([0.1, 1])
 legend('actual terrain', 'expected terrain', 'surface terrain', ...
     'Location', 'Best')
+% get materials for presentation
+if false 
+    figure(2), hold off
+    plot(dtls.terrain, 'o-'), hold on, plot(dtls.ideal, 'ro:')
+    xlim([1, length(dtls.order)])
+    set(gca, 'XTickLabel', dtls.order)
+    ylim([0.1, 1])
+    legend('Actual Terrain', 'Expected Terrain', 'Location', 'Best')
+    figure(3), hold off
+    imshow(dtls.grayroi, []), hold on
+    plot(dtls.y1, dtls.x1, 'rs')
+    return
+end
 
 %% Illumination and health
 subplot(3, 3, [4, 5]), hold off

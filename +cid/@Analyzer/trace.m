@@ -78,7 +78,8 @@ if this.DebugMode, plotSection(); end
 % ............................................................. Illus
 if ~isempty(info.illu) && illu < minpct * max(info.illu), return; end
 % ............................................................. decay
-if decay > this.RidgeArgs.MaxDecay && absdelta > 20, return; end
+%                                                20
+if decay > this.RidgeArgs.MaxDecay && absdelta > 15, return; end
 % ............................................................. delta
 if absdelta > this.RidgeArgs.MaxAbsDelta, return; end
 
@@ -177,8 +178,8 @@ end
         ftt = sprintf('Section, kappa = %d', info.kappa);
         [f.Name, f.NumberTitle] = deal(ftt, 'off');
         [f.ToolBar, f.MenuBar] = deal('none');
-        showROI(illumaproi, {2, 2, 1}, 'IlluMap')
-        showROI(blurroi, {2, 2, 3}, 'BlurMap')
+        showROI(illumaproi, {2, 2, 1}, 'Ridge Map')
+        showROI(blurroi, {2, 2, 3}, 'Adjusted Image')
         function showROI(img, subplt, tt)
             subplot(subplt{:}), hold off
             imshow(img, []), hold on
@@ -204,10 +205,10 @@ end
         subplot(2, 2, 4), hold off
         ax = plotyy(x, sctn(:, 1), x, sctn(:, 2)); hold on
         xlim(ax(1), [1, L]), xlim(ax(2), [1, L])
-        ylabel(ax(1), 'Revealed'), ylabel(ax(2), 'Blurred')
+        ylabel(ax(1), 'Ridge Map'), ylabel(ax(2), 'Adjusted Image')
         plot(sctn(mid, 1) * ideal, 'r:')
         plot([mid - deltaRad, mid + deltaRad], [0, 0], 'rd')
-        tt = sprintf('delta = %.1f, negdelta = %.1f', ...
+        tt = sprintf('Delta = %.1f, Neg-delta = %.1f', ...
             absdelta, negdelta);
         title(tt), xlim([1, length(sctn)])
         % illuminations
